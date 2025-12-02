@@ -35,13 +35,11 @@
                         <span class="text-xs md:text-sm">Send</span>
                     </button>
                 </div>
-                <a href=""
-                    class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
+                <a href="" class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
                     <i class="fas fa-shopping-cart mr-1 md:mr-2"></i>
                     <span class="text-xs md:text-sm">Buy</span>
                 </a>
-                <a href=""
-                    class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
+                <a href="" class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
                     <i class="fas fa-bar-chart mr-1 md:mr-2"></i>
                     <span class="text-xs md:text-sm">Stake</span>
                 </a>
@@ -51,24 +49,29 @@
 
     <!-- All Cryptocurrencies -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" id="crypto-cards">
-        {% for holding in holdings %}
+        {% for item in crypto_data %}
         <div class="card bg-white shadow-md">
             <div class="card-body p-4">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center">
                         <div class="avatar placeholder mr-3">
                             <div class="bg-neutral-focus text-neutral-content rounded-full w-10">
-                                <i class="{{ holding.cryptocurrency.get_icon_class }} text-xl"></i>
+                                <i class="{{ item.cryptocurrency.get_icon_class }} text-xl"></i>
                             </div>
                         </div>
                         <div>
-                            <h3 class="font-bold">{{ holding.cryptocurrency.name }}</h3>
-                            <p class="text-sm text-gray-500">{{ holding.cryptocurrency.symbol }}</p>
+                            <h3 class="font-bold">{{ item.cryptocurrency.name }}</h3>
+                            <p class="text-sm text-gray-500">{{ item.cryptocurrency.symbol }}</p>
+                            <div class="text-xs mt-1">
+                                <span class="font-semibold">${{ item.cryptocurrency.coin_price }}</span>
+                                <span class="text-green-500 ml-1">({{ item.cryptocurrency.market_percentage }}%)</span>
+                            </div>
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="font-bold">${{ holding.amount_in_usd|stringformat:".2f" }}</p>
-                        <p class="text-sm text-gray-500">{{ holding.amount|stringformat:".6f" }} {{ holding.cryptocurrency.symbol }}</p>
+                        <p class="font-bold">${{ item.amount_in_usd|stringformat:".2f" }}</p>
+                        <p class="text-sm text-gray-500">{{ item.amount|stringformat:".6f" }} {{
+                            item.cryptocurrency.symbol }}</p>
                     </div>
                 </div>
             </div>
@@ -100,15 +103,17 @@
                 <div class="form-control w-full mb-4">
                     <label class="label"><span class="label-text">Select Cryptocurrency</span></label>
                     <select name="cryptocurrency" class="select select-bordered w-full" required>
-                        {% for holding in holdings %}
-                        <option value="{{ holding.cryptocurrency.id }}">{{ holding.cryptocurrency.name }} ({{ holding.cryptocurrency.symbol }})</option>
+                        {% for item in crypto_data %}
+                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{
+                            item.cryptocurrency.symbol }})</option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div class="form-control w-full mb-4">
                     <label class="label"><span class="label-text">Amount (USD)</span></label>
-                    <input type="number" name="amount_in_usd" class="input input-bordered w-full" step="0.01" min="1" required>
+                    <input type="number" name="amount_in_usd" class="input input-bordered w-full" step="0.01" min="1"
+                        required>
                 </div>
 
                 <div class="modal-action">
@@ -136,15 +141,17 @@
                 <div class="form-control w-full mb-4">
                     <label class="label"><span class="label-text">Select Cryptocurrency</span></label>
                     <select name="cryptocurrency" class="select select-bordered w-full" required>
-                        {% for holding in holdings %}
-                        <option value="{{ holding.cryptocurrency.id }}">{{ holding.cryptocurrency.name }} ({{ holding.cryptocurrency.symbol }})</option>
+                        {% for item in crypto_data %}
+                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{
+                            item.cryptocurrency.symbol }})</option>
                         {% endfor %}
                     </select>
                 </div>
 
                 <div class="form-control w-full mb-4">
                     <label class="label"><span class="label-text">Amount (USD)</span></label>
-                    <input type="number" name="amount_in_usd" class="input input-bordered w-full" step="0.01" min="1" required>
+                    <input type="number" name="amount_in_usd" class="input input-bordered w-full" step="0.01" min="1"
+                        required>
                 </div>
 
                 <div class="form-control w-full mb-4">
@@ -220,7 +227,7 @@
     function toggleBalance() {
         const balanceElement = document.getElementById('total-balance');
         const eyeIcon = document.getElementById('balance-eye');
-        
+
         if (balanceElement.classList.contains('blur-sm')) {
             balanceElement.classList.remove('blur-sm');
             eyeIcon.classList.remove('fa-eye-slash');

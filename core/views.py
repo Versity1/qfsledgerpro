@@ -199,8 +199,19 @@ def dashboard_view(request):
     total_balance_obj, created = TotalBalance.objects.get_or_create(user=user)
     total_balance_obj.calculate_total_balance()
     
-    # Get holdings
-    holdings = UserCryptoHolding.objects.filter(user=user).select_related('cryptocurrency')
+    # Get all cryptocurrencies and map user holdings
+    all_cryptos = Crytocurrency.objects.all()
+    user_holdings = UserCryptoHolding.objects.filter(user=user)
+    holdings_map = {h.cryptocurrency_id: h for h in user_holdings}
+    
+    crypto_data = []
+    for crypto in all_cryptos:
+        holding = holdings_map.get(crypto.id)
+        crypto_data.append({
+            'cryptocurrency': crypto,
+            'amount': holding.amount if holding else 0,
+            'amount_in_usd': holding.amount_in_usd if holding else 0,
+        })
     
     # Get recent transactions (deposits and withdrawals)
     recent_deposits = Deposit.objects.filter(user=user).order_by('-created_at')[:5]
@@ -224,11 +235,10 @@ def dashboard_view(request):
     
     context = {
         'total_balance': total_balance_obj,
-        'holdings': holdings,
+        'crypto_data': crypto_data,
         'recent_transactions': recent_transactions,
         'kyc_status': kyc_status,
         'wallet_connected': wallet_connected,
-        'all_cryptocurrencies': Crytocurrency.objects.all()
     }
     
     return render(request, 'dashboard.html', context)
