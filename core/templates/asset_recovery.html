@@ -1,0 +1,72 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="p-6 max-w-3xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">Asset Recovery Request</h1>
+        <p class="text-gray-500">Submit a request to recover lost assets</p>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="alert alert-warning mb-6">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Please provide as much detail as possible to help us locate your assets.</span>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} text-sm py-2">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="form-control w-full">
+                        <label class="label"><span class="label-text">Full Name</span></label>
+                        {{ form.full_name }}
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label"><span class="label-text">Email</span></label>
+                        {{ form.email }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="form-control w-full">
+                        <label class="label"><span class="label-text">Phone Number</span></label>
+                        {{ form.phone_number }}
+                    </div>
+                    <div class="form-control w-full">
+                        <label class="label"><span class="label-text">Wallet Address</span></label>
+                        {{ form.wallet_address }}
+                    </div>
+                </div>
+
+                <div class="form-control w-full mb-4">
+                    <label class="label"><span class="label-text">Asset Details</span></label>
+                    {{ form.asset_details }}
+                    <label class="label"><span class="label-text-alt">Type of asset, amount, date of loss,
+                            etc.</span></label>
+                </div>
+
+                <div class="form-control w-full mb-6">
+                    <label class="label"><span class="label-text">Additional Information</span></label>
+                    {{ form.additional_info }}
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <a href="{% url 'asset_recovery_status' %}" class="btn btn-ghost">Check Status</a>
+                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

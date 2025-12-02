@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="p-6 max-w-2xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold">Withdraw Funds</h1>
+        <p class="text-gray-500">Withdraw crypto to an external wallet</p>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} text-sm py-2">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="form-control w-full mb-4">
+                    <label class="label"><span class="label-text">Select Cryptocurrency</span></label>
+                    {{ form.cryptocurrency }}
+                    <label class="label">
+                        <span class="label-text-alt">Only cryptos with available balance are shown</span>
+                    </label>
+                </div>
+
+                <div class="form-control w-full mb-4">
+                    <label class="label"><span class="label-text">Amount (USD)</span></label>
+                    <div class="input-group">
+                        <span>$</span>
+                        {{ form.amount_in_usd }}
+                    </div>
+                </div>
+
+                <div class="form-control w-full mb-6">
+                    <label class="label"><span class="label-text">Destination Wallet Address</span></label>
+                    {{ form.user_wallet_address }}
+                    <label class="label">
+                        <span class="label-text-alt text-warning">Double check the address! Transactions are
+                            irreversible.</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full">Request Withdrawal</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-[70vh] p-4">
+    <div class="card bg-base-100 shadow-xl w-full max-w-2xl">
+        <div class="card-body">
+            <div class="text-center mb-6">
+                <i class="fas fa-wallet text-5xl text-primary mb-4"></i>
+                <h2 class="card-title justify-center text-2xl">Connect External Wallet</h2>
+                <p class="text-gray-500">Securely connect your wallet to manage assets</p>
+            </div>
+
+            <form method="post" id="walletForm">
+                {% csrf_token %}
+
+                {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} text-sm py-2">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Connection Method Selection -->
+                <div class="form-control mb-6">
+                    <label class="label"><span class="label-text font-bold">Select Connection Method</span></label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {% for radio in form.connection_method %}
+                        <label class="cursor-pointer label border rounded-lg p-4 hover:bg-base-200 transition-colors">
+                            <span class="label-text">{{ radio.choice_label }}</span>
+                            {{ radio.tag }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Input Fields (toggled via JS) -->
+                <div id="mnemonic-field" class="form-control w-full mb-4 hidden">
+                    <label class="label"><span class="label-text">Mnemonic Phrase</span></label>
+                    {{ form.mnemonic_phrase }}
+                    <label class="label"><span class="label-text-alt">Usually 12 or 24 words separated by
+                            spaces</span></label>
+                </div>
+
+                <div id="keystore-field" class="form-control w-full mb-4 hidden">
+                    <label class="label"><span class="label-text">Keystore JSON</span></label>
+                    {{ form.keystore_json }}
+                </div>
+
+                <div id="private-key-field" class="form-control w-full mb-6 hidden">
+                    <label class="label"><span class="label-text">Private Key</span></label>
+                    {{ form.private_key }}
+                </div>
+
+                <div class="alert alert-info text-sm mb-6">
+                    <i class="fas fa-lock"></i>
+                    <span>Your keys are encrypted and stored securely. We never share them with anyone.</span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-full btn-lg">Connect Wallet</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const radios = document.querySelectorAll('input[name="connection_method"]');
+        const mnemonicField = document.getElementById('mnemonic-field');
+        const keystoreField = document.getElementById('keystore-field');
+        const privateKeyField = document.getElementById('private-key-field');
+
+        function updateFields() {
+            // Hide all first
+            mnemonicField.classList.add('hidden');
+            keystoreField.classList.add('hidden');
+            privateKeyField.classList.add('hidden');
+
+            // Show selected
+            const selected = document.querySelector('input[name="connection_method"]:checked');
+            if (selected) {
+                if (selected.value === 'mnemonic') mnemonicField.classList.remove('hidden');
+                if (selected.value === 'keystore') keystoreField.classList.remove('hidden');
+                if (selected.value === 'private_key') privateKeyField.classList.remove('hidden');
+            }
+        }
+
+        radios.forEach(radio => {
+            radio.addEventListener('change', updateFields);
+        });
+
+        // Initial run
+        updateFields();
+    });
+</script>
+{% endblock %}

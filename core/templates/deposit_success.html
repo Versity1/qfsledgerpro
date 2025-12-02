@@ -1,0 +1,42 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-[60vh]">
+    <div class="card bg-base-100 shadow-xl w-full max-w-lg text-center">
+        <div class="card-body">
+            <div class="text-success mb-4">
+                <i class="fas fa-check-circle text-6xl"></i>
+            </div>
+            <h2 class="card-title justify-center text-2xl mb-2">Deposit Request Created!</h2>
+            <p class="text-gray-500 mb-6">Please send exactly <strong>${{ deposit.amount_in_usd }}</strong> worth of
+                <strong>{{ deposit.cryptocurrency.symbol }}</strong> to the address below.</p>
+
+            <div class="bg-base-200 p-4 rounded-lg mb-6">
+                <p class="text-sm text-gray-500 mb-2">Admin Wallet Address ({{ deposit.cryptocurrency.symbol }})</p>
+                <div class="flex items-center justify-between bg-white p-3 rounded border border-gray-300">
+                    <code class="text-sm break-all">{{ wallet.wallet_address }}</code>
+                    <button class="btn btn-ghost btn-xs"
+                        onclick="navigator.clipboard.writeText('{{ wallet.wallet_address }}')">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                {% if wallet.qr_code %}
+                <div class="mt-4 flex justify-center">
+                    <img src="{{ wallet.qr_code.url }}" alt="Wallet QR Code" class="w-48 h-48">
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="alert alert-warning text-sm">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Your balance will be updated automatically after network confirmation.</span>
+            </div>
+
+            <div class="card-actions justify-center mt-6">
+                <a href="{% url 'transactions' %}" class="btn btn-primary">View Transaction</a>
+                <a href="{% url 'dashboard' %}" class="btn btn-ghost">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

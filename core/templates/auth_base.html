@@ -1,0 +1,144 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}QFS Ledger Pro - Authentication{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#073fba',
+                        secondary: '#721fff',
+                        dark: '#000000',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .register-container {
+            background: linear-gradient(135deg, #1a56db 0%, #7e3af2 100%);
+            min-height: 100vh;
+        }
+        .card-glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .progress-bar {
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1a56db, #7e3af2);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        .password-strength {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 4px;
+        }
+        .error-message {
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+         .error-message {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    .card-glass {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .password-strength {
+        height: 4px;
+        border-radius: 2px;
+        margin-top: 4px;
+    }
+    </style>
+</head>
+<body class="register-container flex items-center justify-center p-4 py-8">
+    <div class="w-full max-w-md">
+        {% block content %}
+        {% endblock %}
+    <script>
+        // Password visibility toggle
+        function togglePassword(fieldId) {
+            const passwordInput = document.getElementById(`id_${fieldId}`);
+            const passwordToggle = document.getElementById(`passwordToggle${fieldId === 'password1' ? '1' : '2'}`);
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                passwordToggle.classList.remove('fa-eye');
+                passwordToggle.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                passwordToggle.classList.remove('fa-eye-slash');
+                passwordToggle.classList.add('fa-eye');
+            }
+        }
+
+        // Password strength indicator
+        document.getElementById('id_password1').addEventListener('input', function(e) {
+            const password = e.target.value;
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            const passwordHint = document.getElementById('passwordHint');
+            
+            let strength = 0;
+            let hint = 'Use 8+ characters with mix of letters, numbers & symbols';
+            let color = 'bg-red-500';
+            
+            if (password.length >= 8) strength += 25;
+            if (/[A-Z]/.test(password)) strength += 25;
+            if (/[0-9]/.test(password)) strength += 25;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 25;
+            
+            if (strength >= 75) {
+                color = 'bg-green-500';
+                hint = 'Strong password!';
+            } else if (strength >= 50) {
+                color = 'bg-yellow-500';
+                hint = 'Good password';
+            } else if (strength >= 25) {
+                color = 'bg-orange-500';
+                hint = 'Fair password';
+            } else {
+                color = 'bg-red-500';
+                hint = 'Weak password';
+            }
+            
+            strengthBar.style.width = strength + '%';
+            strengthBar.className = `h-full ${color} rounded transition-all duration-300`;
+            passwordHint.textContent = hint;
+        });
+
+        // Form submission loading state
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const btn = this.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating Account...';
+            btn.disabled = true;
+        });
+
+        // Username availability check (simulated)
+        document.getElementById('id_username').addEventListener('blur', function(e) {
+            const username = e.target.value;
+            if (username.length >= 3) {
+                console.log(`Checking availability for: ${username}`);
+            }
+        });
+    </script>
+</body>
+</html>

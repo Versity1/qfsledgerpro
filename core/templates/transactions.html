@@ -1,0 +1,94 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Transaction History</h1>
+        <div class="flex gap-2">
+            <a href="{% url 'deposit' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus mr-1"></i> Deposit</a>
+            <a href="{% url 'withdraw' %}" class="btn btn-outline btn-sm"><i class="fas fa-minus mr-1"></i> Withdraw</a>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="table w-full">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Asset</th>
+                        <th>Amount (USD)</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in page_obj %}
+                    <tr>
+                        <td class="text-sm text-gray-500">{{ tx.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            {% if tx.admin_wallet %}
+                            <span class="badge badge-success badge-outline gap-1">
+                                <i class="fas fa-arrow-down"></i> Deposit
+                            </span>
+                            {% else %}
+                            <span class="badge badge-warning badge-outline gap-1">
+                                <i class="fas fa-arrow-up"></i> Withdraw
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <i class="{{ tx.cryptocurrency.get_icon_class }}"></i>
+                                <span class="font-bold">{{ tx.cryptocurrency.symbol }}</span>
+                            </div>
+                        </td>
+                        <td class="font-mono">${{ tx.amount_in_usd }}</td>
+                        <td>
+                            {% if tx.status == 'completed' %}
+                            <span class="badge badge-success">Completed</span>
+                            {% elif tx.status == 'pending' %}
+                            <span class="badge badge-info">Pending</span>
+                            {% else %}
+                            <span class="badge badge-error">Failed</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-xs max-w-xs truncate text-gray-400">
+                            {% if tx.tx_hash %}
+                            {{ tx.tx_hash }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-8 text-gray-500">
+                            No transactions found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <div class="flex justify-center p-4 border-t border-base-200">
+            <div class="btn-group">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm">«</a>
+                {% endif %}
+
+                <button class="btn btn-sm btn-active">Page {{ page_obj.number }}</button>
+
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm">»</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

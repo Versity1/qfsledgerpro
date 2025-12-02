@@ -1,0 +1,269 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitoraccount - Crypto Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'images/logo-dark.png' %}">
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/logo-dark.png' %}">
+    <!-- SEO tags -->
+    <meta name="description" content="Bitoraccount - Your go-to crypto dashboard for managing digital assets">
+    <meta name="keywords" content="crypto, dashboard, bitcoin, ethereum, bitoraccount">
+    <meta name="author" content="Bitoraccount Team">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#073fba',
+                        secondary: '#721fff',
+                        dark: '#000000',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        #google_translate_floating {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 9999;
+        }
+
+        #google_translate_element {
+            background: white;
+            border-radius: 25px;
+            padding: 6px 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            max-width: 140px;
+            font-size: 12px;
+        }
+
+        #google_translate_element:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .goog-te-combo {
+            border: none;
+            background: transparent;
+            font-size: 12px;
+            color: #111827;
+            outline: none;
+            cursor: pointer;
+            width: 100%;
+            padding: 2px 4px;
+        }
+
+        .goog-logo-link,
+        .goog-te-gadget span,
+        .goog-te-gadget .goog-te-menu-value span:not(:first-child) {
+            display: none !important;
+        }
+
+        .goog-te-menu-value {
+            display: flex !important;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .goog-te-menu-value:after {
+            content: "🌐";
+            font-size: 14px;
+            margin-left: 4px;
+        }
+
+        body>.goog-te-banner-frame.skiptranslate {
+            display: none !important;
+        }
+
+        body {
+            top: 0px !important;
+        }
+
+        .goog-te-gadget {
+            font-family: inherit !important;
+            color: #333 !important;
+            line-height: 1 !important;
+        }
+
+        .goog-te-menu2 {
+            max-width: 200px !important;
+            font-size: 12px !important;
+        }
+    </style>
+
+    <!-- Google Translate Script -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript"
+        src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <div class="drawer lg:drawer-open">
+        <input id="my-drawer-2" type="checkbox" class="drawer-toggle" />
+        <div class="drawer-content flex flex-col">
+            <!-- Top Navigation Bar - Enhanced with sticky, shadow, and better mobile design -->
+            <div class="navbar bg-white sticky top-0 z-50 shadow-lg px-4 py-3 border-b border-gray-100">
+                <!-- LEFT SIDE: Logo -->
+                <div class="flex-1">
+                    <a class="flex items-center">
+                        <img src="{% static 'images/logo.png' %}" alt="QFS Ledger Pro" class="h-8 md:h-10">
+                    </a>
+                </div>
+
+                <!-- RIGHT SIDE: Navigation Icons -->
+                <div class="flex-none flex items-center gap-2">
+                    <!-- Wallet Connection Status - Hidden on mobile -->
+                    {% if user.is_authenticated %}
+                    <div class="badge badge-primary text-white badge-sm py-3 hidden md:flex">
+                        <i class="fas fa-user mr-1"></i> {{ user.username }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Profile Dropdown -->
+                    <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                            <div class="w-10 rounded-full bg-primary text-white flex items-center justify-center">
+                                <div class="text-lg font-bold">{{ user.username|slice:":2"|upper }}</div>
+                            </div>
+                        </div>
+                        <ul tabindex="0"
+                            class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                            <li><a href="#"><i class="fas fa-user mr-2"></i>Profile</a></li>
+                            <li><a href="#"><i class="fas fa-wallet mr-2"></i>Connect Wallet</a></li>
+                            <li>
+                                <form action="{% url 'logout' %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn bg-red-500 w-full text-left"><i
+                                            class="fas fa-sign-out mr-2"></i>Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <div class="lg:hidden">
+                        <label for="my-drawer-2" class="btn btn-square btn-ghost drawer-button">
+                            <i class="fas fa-bars text-xl"></i>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Block -->
+            {% block content %}
+            {% endblock %}
+
+        </div>
+
+        <!-- Sidebar -->
+        <div class="drawer-side">
+            <label for="my-drawer-2" class="drawer-overlay"></label>
+            <ul class="menu p-4 w-80 h-full bg-base-200 text-base-content">
+                <li class="mb-8">
+                    <a class="text-xl font-bold">
+                        <img src="{% static 'images/logo.png' %}" alt="" width="180px">
+                    </a>
+                </li>
+
+                <!-- User Navigation (for regular users) -->
+                {% if not user.is_staff %}
+                <li><a class="{% if request.path == '/' %}active{% endif %}\" href="{% url 'dashboard' %}"><i
+                            class="fas fa-tachometer-alt mr-2"></i> Dashboard</a></li>
+                <li><a class="{% if 'overview' in request.path %}active{% endif %}" href="#"><i
+                            class="fas fa-chart-pie mr-2"></i> Overview</a></li>
+                <li><a class="{% if 'wallet_connect' in request.path %}active{% endif %}" href="#"><i
+                            class="fas fa-wallet mr-2"></i> Wallet Connect</a></li>
+                <li><a class="{% if 'profile' in request.path %}active{% endif %}" href="#"><i
+                            class="fas fa-user mr-2"></i> Profile</a></li>
+                <li><a class="{% if 'kyc' in request.path %}active{% endif %}" href="#"><i
+                            class="fas fa-id-card mr-2"></i> KYC</a></li>
+
+                <!-- Admin Navigation (for staff users) -->
+                {% else %}
+                <li><a class="{% if 'admin/dashboard' in request.path %}active{% endif %}" href="#"><i
+                            class="fas fa-tachometer-alt mr-2"></i> Admin Dashboard</a></li>
+
+                <!-- User Management Section -->
+                <li class="menu-title">
+                    <span>User Management</span>
+                </li>
+                <li><a class="{% if 'admin/users' in request.path %}active{% endif %}" href="#"><i
+                            class="fas fa-users mr-2"></i> Users</a></li>
+                <li><a class="{% if 'admin/kyc' in request.path %}active{% endif %}" href="#"><i
+                            class="fas fa-id-card mr-2"></i> KYC Management</a></li>
+
+                <!-- Financial Management Section -->
+                <li class="menu-title">
+                    <span>Financial Management</span>
+                </li>
+                <li><a class="{% if 'admin/deposits' in request.path %}active{% endif %}" href="#"><i
+                            class="fas fa-arrow-down mr-2"></i> Deposits</a></li>
+                <li><a class="{% if 'admin/withdrawals' in request.path %}active{% endif %}" href="#"><i
+                            class="fas fa-arrow-up mr-2"></i> Withdrawals</a></li>
+                {% endif %}
+
+                <div class="divider my-4"></div>
+
+                <!-- Common Links for All Users -->
+                <li>
+                    <form action="{% url 'logout' %}" method="post">
+                        {% csrf_token %}
+                        <button class="text-red-500 w-full text-left">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
+                    </form>
+                </li>
+
+                <!-- Admin Quick Stats (Only for staff) -->
+                {% if user.is_staff %}
+
+                <div class="mt-auto pt-4 border-t border-base-300">
+                    <div class="text-xs text-gray-500 space-y-1">
+                        <div class="flex justify-between">
+                            <span>Total Users:</span>
+                            <span class="font-semibold">{{ total_users_count|default:"0" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Pending KYC:</span>
+                            <span class="font-semibold text-warning">{{ pending_kyc_count|default:"0" }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Pending Deposits:</span>
+                            <span class="font-semibold text-warning">{{ pending_deposits_count|default:"0" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Google Translate Floating Button -->
+    <div id="google_translate_floating">
+        <div id="google_translate_element" class="translate-box shadow-lg"></div>
+    </div>
+</body>
+
+</html>

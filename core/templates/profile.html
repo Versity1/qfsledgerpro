@@ -1,0 +1,88 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="p-6">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">My Profile</h1>
+        <a href="{% url 'change_password' %}" class="btn btn-outline btn-sm">Change Password</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Profile Form -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Personal Information</h2>
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} text-sm py-2">
+                            {{ message }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="form-control w-full mb-3">
+                        <label class="label"><span class="label-text">First Name</span></label>
+                        {{ form.first_name }}
+                    </div>
+
+                    <div class="form-control w-full mb-3">
+                        <label class="label"><span class="label-text">Last Name</span></label>
+                        {{ form.last_name }}
+                    </div>
+
+                    <div class="form-control w-full mb-3">
+                        <label class="label"><span class="label-text">Email</span></label>
+                        {{ form.email }}
+                    </div>
+
+                    <div class="form-control w-full mb-4">
+                        <label class="label"><span class="label-text">Phone Number</span></label>
+                        {{ form.phone_number }}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full">Update Profile</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Account Stats -->
+        <div class="space-y-6">
+            <div class="stats shadow w-full bg-base-100">
+                <div class="stat">
+                    <div class="stat-figure text-primary">
+                        <i class="fas fa-user-shield text-3xl"></i>
+                    </div>
+                    <div class="stat-title">Account Status</div>
+                    <div class="stat-value text-lg">
+                        {% if user_profile.email_verified %}
+                        <span class="text-success">Verified</span>
+                        {% else %}
+                        <span class="text-warning">Unverified</span>
+                        {% endif %}
+                    </div>
+                    <div class="stat-desc">Member since {{ user.date_joined|date:"M Y" }}</div>
+                </div>
+            </div>
+
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title text-base">Security Settings</h2>
+                    <ul class="menu bg-base-200 w-full rounded-box">
+                        <li><a><i class="fas fa-key"></i> Two-Factor Auth <span
+                                    class="badge badge-sm">Disabled</span></a></li>
+                        <li><a><i class="fas fa-history"></i> Login History</a></li>
+                        <li><a><i class="fas fa-envelope"></i> Email Notifications <span
+                                    class="badge badge-success badge-sm">On</span></a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

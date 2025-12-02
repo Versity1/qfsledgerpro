@@ -1,0 +1,235 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Main Content -->
+<main class="flex-1 p-4 md:p-6">
+    <!-- Mobile Balance Card -->
+    <div class="card bg-gradient-to-r from-primary to-secondary text-white shadow-xl mb-6">
+        <div class="card-body p-4 md:p-6">
+            <div class="flex justify-between items-start mb-4">
+                <h2 class="card-title text-lg md:text-xl">
+                    <i class="fas fa-wallet mr-2"></i>
+                    Total Balance
+                </h2>
+                <div class="bg-white bg-opacity-20 p-2 rounded-lg cursor-pointer" onclick="toggleBalance()">
+                    <i class="fas fa-eye text-white" id="balance-eye"></i>
+                </div>
+            </div>
+
+            <p class="text-2xl md:text-4xl font-bold mb-6" id="total-balance">
+                ${{ total_balance.total_usd_balance|stringformat:".2f" }}
+            </p>
+
+            <!-- Action Buttons - Mobile Layout -->
+            <div class="flex flex-col md:flex-row gap-3">
+                <div class="flex justify-between gap-2">
+                    <button class="btn btn-sm md:btn-md bg-white bg-opacity-20 text-white border-none flex-1"
+                        onclick="deposit_modal.showModal()">
+                        <i class="fas fa-download mr-1 md:mr-2"></i>
+                        <span class="text-xs md:text-sm">Receive</span>
+                    </button>
+                    <button class="btn btn-sm md:btn-md bg-white bg-opacity-20 text-white border-none flex-1"
+                        onclick="withdraw_modal.showModal()">
+                        <i class="fas fa-paper-plane mr-1 md:mr-2"></i>
+                        <span class="text-xs md:text-sm">Send</span>
+                    </button>
+                </div>
+                <a href=""
+                    class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
+                    <i class="fas fa-shopping-cart mr-1 md:mr-2"></i>
+                    <span class="text-xs md:text-sm">Buy</span>
+                </a>
+                <a href=""
+                    class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
+                    <i class="fas fa-bar-chart mr-1 md:mr-2"></i>
+                    <span class="text-xs md:text-sm">Stake</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Cryptocurrencies -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" id="crypto-cards">
+        {% for holding in holdings %}
+        <div class="card bg-white shadow-md">
+            <div class="card-body p-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="avatar placeholder mr-3">
+                            <div class="bg-neutral-focus text-neutral-content rounded-full w-10">
+                                <i class="{{ holding.cryptocurrency.get_icon_class }} text-xl"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold">{{ holding.cryptocurrency.name }}</h3>
+                            <p class="text-sm text-gray-500">{{ holding.cryptocurrency.symbol }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold">${{ holding.amount_in_usd|stringformat:".2f" }}</p>
+                        <p class="text-sm text-gray-500">{{ holding.amount|stringformat:".6f" }} {{ holding.cryptocurrency.symbol }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full">
+            <div class="card bg-white shadow-md">
+                <div class="card-body p-8 text-center">
+                    <i class="fas fa-coins text-gray-300 text-5xl mb-4"></i>
+                    <h3 class="font-bold text-lg text-dark mb-2">No Cryptocurrencies Available</h3>
+                    <p class="text-gray-500">Cryptocurrencies will appear here once they are added to the system.</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Deposit Modal -->
+    <dialog id="deposit_modal" class="modal">
+        <div class="modal-box max-w-md">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-lg mb-4">Deposit Funds</h3>
+
+            <form action="{% url 'deposit' %}" method="post">
+                {% csrf_token %}
+                <!-- Note: This is a simplified form. For full functionality, consider using the dedicated Deposit page. -->
+                <div class="form-control w-full mb-4">
+                    <label class="label"><span class="label-text">Select Cryptocurrency</span></label>
+                    <select name="cryptocurrency" class="select select-bordered w-full" required>
+                        {% for holding in holdings %}
+                        <option value="{{ holding.cryptocurrency.id }}">{{ holding.cryptocurrency.name }} ({{ holding.cryptocurrency.symbol }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-control w-full mb-4">
+                    <label class="label"><span class="label-text">Amount (USD)</span></label>
+                    <input type="number" name="amount_in_usd" class="input input-bordered w-full" step="0.01" min="1" required>
+                </div>
+
+                <div class="modal-action">
+                    <button type="submit" class="btn btn-success w-full">
+                        <i class="fas fa-check mr-2"></i> Confirm Deposit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Withdraw Modal -->
+    <dialog id="withdraw_modal" class="modal">
+        <div class="modal-box">
+            <form method="dialog">
+                <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+            </form>
+            <h3 class="font-bold text-lg mb-4">Withdraw Funds</h3>
+
+            <form action="{% url 'withdraw' %}" method="post">
+                {% csrf_token %}
+                <div class="form-control w-full mb-4">
+                    <label class="label"><span class="label-text">Select Cryptocurrency</span></label>
+                    <select name="cryptocurrency" class="select select-bordered w-full" required>
+                        {% for holding in holdings %}
+                        <option value="{{ holding.cryptocurrency.id }}">{{ holding.cryptocurrency.name }} ({{ holding.cryptocurrency.symbol }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-control w-full mb-4">
+                    <label class="label"><span class="label-text">Amount (USD)</span></label>
+                    <input type="number" name="amount_in_usd" class="input input-bordered w-full" step="0.01" min="1" required>
+                </div>
+
+                <div class="form-control w-full mb-4">
+                    <label class="label"><span class="label-text">Destination Wallet Address</span></label>
+                    <input type="text" name="user_wallet_address" class="input input-bordered w-full" required>
+                </div>
+
+                <div class="modal-action">
+                    <button type="submit" class="btn btn-error w-full">
+                        <i class="fas fa-arrow-up mr-2"></i> Confirm Withdrawal Request
+                    </button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Recent Transactions -->
+    <div class="card bg-white shadow-md">
+        <div class="card-body">
+            <h3 class="card-title text-lg mb-4 text-dark">
+                <i class="fas fa-history mr-2 text-dark"></i> Recent Transactions
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="table table-auto w-full text-dark">
+                    <thead>
+                        <tr>
+                            <th class="text-dark">Type</th>
+                            <th class="text-dark">Amount</th>
+                            <th class="text-dark">Cryptocurrency</th>
+                            <th class="text-dark">Status</th>
+                            <th class="text-dark">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-table">
+                        {% for tx in recent_transactions %}
+                        <tr>
+                            <td>
+                                {% if tx.admin_wallet %}
+                                <span class="badge badge-success badge-outline">Deposit</span>
+                                {% else %}
+                                <span class="badge badge-warning badge-outline">Withdraw</span>
+                                {% endif %}
+                            </td>
+                            <td class="font-bold">${{ tx.amount_in_usd|stringformat:".2f" }}</td>
+                            <td>{{ tx.cryptocurrency.symbol }}</td>
+                            <td>
+                                {% if tx.status == 'completed' %}
+                                <span class="text-success">Completed</span>
+                                {% elif tx.status == 'pending' %}
+                                <span class="text-warning">Pending</span>
+                                {% else %}
+                                <span class="text-error">Failed</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-sm text-gray-500">{{ tx.created_at|date:"M d, Y" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">No transactions yet</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    function toggleBalance() {
+        const balanceElement = document.getElementById('total-balance');
+        const eyeIcon = document.getElementById('balance-eye');
+        
+        if (balanceElement.classList.contains('blur-sm')) {
+            balanceElement.classList.remove('blur-sm');
+            eyeIcon.classList.remove('fa-eye-slash');
+            eyeIcon.classList.add('fa-eye');
+        } else {
+            balanceElement.classList.add('blur-sm');
+            eyeIcon.classList.remove('fa-eye');
+            eyeIcon.classList.add('fa-eye-slash');
+        }
+    }
+</script>
+{% endblock %}

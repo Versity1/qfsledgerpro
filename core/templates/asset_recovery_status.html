@@ -1,0 +1,45 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="p-6 max-w-4xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Recovery Requests Status</h1>
+        <a href="{% url 'asset_recovery' %}" class="btn btn-primary btn-sm">New Request</a>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="overflow-x-auto">
+            <table class="table w-full">
+                <thead>
+                    <tr>
+                        <th>Ticket ID</th>
+                        <th>Date Submitted</th>
+                        <th>Wallet Address</th>
+                        <th>Details</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr>
+                        <td class="font-mono text-sm">#{{ req.id }}</td>
+                        <td>{{ req.submitted_at|date:"M d, Y" }}</td>
+                        <td class="font-mono text-xs">{{ req.wallet_address|truncatechars:20 }}</td>
+                        <td class="max-w-xs truncate">{{ req.asset_details }}</td>
+                        <td>
+                            <span class="badge badge-info">Pending Review</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-8 text-gray-500">
+                            No recovery requests found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
