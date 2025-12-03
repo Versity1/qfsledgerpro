@@ -70,8 +70,7 @@
                     </div>
                     <div class="text-right">
                         <p class="font-bold">${{ item.amount_in_usd|stringformat:".2f" }}</p>
-                        <p class="text-sm text-gray-500">{{ item.amount|stringformat:".6f" }} {{
-                            item.cryptocurrency.symbol }}</p>
+                        <p class="text-sm text-gray-500">{{ item.amount|stringformat:".6f" }} {{ item.cryptocurrency.symbol }}</p>
                     </div>
                 </div>
             </div>
@@ -104,8 +103,7 @@
                     <label class="label"><span class="label-text">Select Cryptocurrency</span></label>
                     <select name="cryptocurrency" class="select select-bordered w-full" required>
                         {% for item in crypto_data %}
-                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{
-                            item.cryptocurrency.symbol }})</option>
+                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{ item.cryptocurrency.symbol }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -142,8 +140,7 @@
                     <label class="label"><span class="label-text">Select Cryptocurrency</span></label>
                     <select name="cryptocurrency" class="select select-bordered w-full" required>
                         {% for item in crypto_data %}
-                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{
-                            item.cryptocurrency.symbol }})</option>
+                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{ item.cryptocurrency.symbol }})</option>
                         {% endfor %}
                     </select>
                 </div>
