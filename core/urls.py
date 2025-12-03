@@ -1,5 +1,8 @@
 from django.urls import path
 from . import views
+# import setting for media files
+from django.conf import settings
+
 
 
 urlpatterns = [
@@ -36,3 +39,7 @@ urlpatterns = [
     path('kyc/submit/', views.kyc_submit_view, name='kyc_submit'),
     path('kyc/status/', views.kyc_status_view, name='kyc_status'),
 ]
+# Serve media files during development
+if settings.DEBUG:
+    from django.conf.urls.static import static
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

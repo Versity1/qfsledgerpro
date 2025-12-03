@@ -27,7 +27,7 @@
                         <td class="font-mono text-xs">{{ req.wallet_address|truncatechars:20 }}</td>
                         <td class="max-w-xs truncate">{{ req.asset_details }}</td>
                         <td>
-                            <span class="badge badge-info">Pending Review</span>
+                            <span class="badge badge-info text-white">{{ req.get_status_display }}</span>
                         </td>
                     </tr>
                     {% empty %}

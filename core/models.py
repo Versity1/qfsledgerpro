@@ -35,9 +35,18 @@ class ConnectWallet(models.Model):
 
 
 # asset recovery form model
+# asset recovery status choices
+RECOVERY_STATUS_CHOICES = [
+        ('pending', 'Pending Review'),
+        ('verified', 'Verified'),
+        ('in_review', 'In Review'),
+        ('recovery_mode', 'Recovery Activated'),
+    ]
+
 class AssetRecoveryForm(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255)
+    status = models.CharField(max_length=15, choices=RECOVERY_STATUS_CHOICES, default='pending review')
     email = models.EmailField()
     phone_number = models.CharField(max_length=20)
     wallet_address = models.CharField(max_length=255)
