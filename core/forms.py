@@ -342,3 +342,75 @@ class KYCSubmissionForm(forms.ModelForm):
                 'accept': 'image/*'
             })
         }
+
+
+class CreateInvestmentForm(forms.Form):
+    """Form for creating a new investment"""
+    cryptocurrency = forms.ModelChoiceField(
+        queryset=None,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'select select-bordered w-full'
+        }),
+        empty_label="Select Payment Wallet"
+    )
+    amount = forms.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        required=True,
+        label="Amount (USD)",
+        widget=forms.NumberInput(attrs={
+            'class': 'input input-bordered w-full',
+            'placeholder': 'Enter amount in USD',
+            'step': '0.01'
+        })
+    )
+
+    def __init__(self, user, plan, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.plan = plan
+        
+        # Only show cryptos where user has balance
+        from .models import UserCryptoHolding, Crytocurrency
+        user_holdings = UserCryptoHolding.objects.filter(
+            user=user, 
+            amount_in_usd__gt=0
+        ).values_list('cryptocurrency', flat=True)
+        
+        self.fields['cryptocurrency'].queryset = Crytocurrency.objects.filter(id__in=user_holdings)
+        
+        # Set min/max help text
+        self.fields['amount'].help_text = f"Min: ${plan.min_amount} - Max: ${plan.max_amount}"
+        self.fields['amount'].widget.attrs['min'] = plan.min_amount
+        self.fields['amount'].widget.attrs['max'] = plan.max_amount
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount:
+            if amount < self.plan.min_amount:
+                raise ValidationError(f"Minimum investment amount is ${self.plan.min_amount}")
+            if amount > self.plan.max_amount:
+                raise ValidationError(f"Maximum investment amount is ${self.plan.max_amount}")
+        return amount
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cryptocurrency = cleaned_data.get('cryptocurrency')
+        amount = cleaned_data.get('amount')
+
+        if cryptocurrency and amount:
+            from .models import UserCryptoHolding
+            try:
+                holding = UserCryptoHolding.objects.get(
+                    user=self.user,
+                    cryptocurrency=cryptocurrency
+                )
+                if holding.amount_in_usd < amount:
+                    raise ValidationError(
+                        f"Insufficient balance in {cryptocurrency.symbol}. You have ${holding.amount_in_usd}."
+                    )
+            except UserCryptoHolding.DoesNotExist:
+                raise ValidationError(f"You do not have any balance in {cryptocurrency.symbol}.")
+        
+        return cleaned_data

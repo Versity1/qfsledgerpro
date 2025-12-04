@@ -178,3 +178,39 @@ class TotalBalanceAdmin(admin.ModelAdmin):
     list_display = ('user', 'total_usd_balance', 'last_updated')
     search_fields = ('user__username', 'user__email')
     readonly_fields = ('last_updated',)
+
+
+# Investment Plan Admin
+from .models import InvestmentPlan, UserInvestment, InvestmentTransaction
+
+@admin.register(InvestmentPlan)
+class InvestmentPlanAdmin(admin.ModelAdmin):
+    list_display = ('name', 'daily_interest_rate', 'duration_days', 'min_amount', 'max_amount', 'is_active')
+    list_filter = ('is_active', 'duration_days')
+    search_fields = ('name', 'description')
+    list_editable = ('is_active', 'daily_interest_rate', 'min_amount', 'max_amount')
+
+
+@admin.register(UserInvestment)
+class UserInvestmentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'plan', 'amount_in_usd', 'daily_profit', 'total_profit_earned', 'status', 'start_date', 'end_date')
+    list_filter = ('status', 'plan', 'start_date', 'end_date')
+    search_fields = ('user__username', 'user__email', 'plan__name')
+    readonly_fields = ('start_date', 'end_date', 'last_profit_date')
+    actions = ['mark_completed', 'mark_active']
+
+    def mark_completed(self, request, queryset):
+        queryset.update(status='completed')
+    mark_completed.short_description = "Mark selected as Completed"
+
+    def mark_active(self, request, queryset):
+        queryset.update(status='active')
+    mark_active.short_description = "Mark selected as Active"
+
+
+@admin.register(InvestmentTransaction)
+class InvestmentTransactionAdmin(admin.ModelAdmin):
+    list_display = ('investment', 'transaction_type', 'amount', 'created_at')
+    list_filter = ('transaction_type', 'created_at')
+    search_fields = ('investment__user__username', 'description')
+    readonly_fields = ('created_at',)

@@ -1,0 +1,132 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-6">
+        <a href="{% url 'my_investments' %}" class="btn btn-ghost">
+            <i class="fas fa-arrow-left mr-2"></i> Back to My Investments
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Investment Details Card -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="card bg-white shadow-xl border border-gray-200">
+                <div class="card-body">
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">{{ investment.plan.name }} Plan</h1>
+                            <p class="text-gray-500">Investment ID: #{{ investment.id }}</p>
+                        </div>
+                        <span
+                            class="badge {% if investment.status == 'active' %}badge-success{% else %}badge-ghost{% endif %} badge-lg">
+                            {{ investment.get_status_display }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <span class="text-gray-500 block mb-1">Invested Amount</span>
+                            <span class="text-2xl font-bold text-gray-800">${{ investment.amount_in_usd }}</span>
+                            <span class="text-xs text-gray-500 block">{{ investment.amount_invested|floatformat:6 }} {{
+                                investment.cryptocurrency.symbol }}</span>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <span class="text-green-700 block mb-1">Total Profit Earned</span>
+                            <span class="text-2xl font-bold text-green-700">+${{ investment.total_profit_earned
+                                }}</span>
+                        </div>
+                    </div>
+
+                    <div class="divider">Plan Details</div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500 block">Daily Interest</span>
+                            <span class="font-semibold">{{ investment.plan.daily_interest_rate }}%</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block">Daily Profit</span>
+                            <span class="font-semibold text-green-600">${{ investment.daily_profit }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block">Start Date</span>
+                            <span class="font-semibold">{{ investment.start_date|date:"M d, Y" }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block">End Date</span>
+                            <span class="font-semibold">{{ investment.end_date|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="card bg-white shadow-xl border border-gray-200">
+                <div class="card-body">
+                    <h2 class="card-title text-xl mb-4">Transaction History</h2>
+                    <div class="overflow-x-auto">
+                        <table class="table w-full">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for transaction in transactions %}
+                                <tr>
+                                    <td class="text-sm">{{ transaction.created_at|date:"M d, H:i" }}</td>
+                                    <td>
+                                        {% if transaction.transaction_type == 'daily_profit' %}
+                                        <span class="badge badge-success badge-sm">Profit</span>
+                                        {% elif transaction.transaction_type == 'investment_start' %}
+                                        <span class="badge badge-info badge-sm">Invested</span>
+                                        {% elif transaction.transaction_type == 'capital_return' %}
+                                        <span class="badge badge-warning badge-sm">Return</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="font-mono font-semibold">
+                                        {% if transaction.transaction_type == 'investment_start' %}
+                                        -${{ transaction.amount }}
+                                        {% else %}
+                                        +${{ transaction.amount }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-sm text-gray-500">{{ transaction.description }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-gray-500 py-4">No transactions yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="space-y-6">
+            <div class="card bg-base-100 shadow-xl border border-gray-200">
+                <div class="card-body">
+                    <h3 class="font-bold text-lg mb-4">Investment Summary</h3>
+                    <ul class="steps steps-vertical text-sm">
+                        <li class="step step-primary">Investment Started<br><span class="text-xs text-gray-500">{{
+                                investment.start_date|date:"M d, Y" }}</span></li>
+                        <li class="step {% if investment.status == 'completed' %}step-primary{% endif %}">Maturity
+                            Date<br><span class="text-xs text-gray-500">{{ investment.end_date|date:"M d, Y" }}</span>
+                        </li>
+                        <li class="step {% if investment.status == 'completed' %}step-primary{% endif %}">Capital Return
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

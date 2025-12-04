@@ -299,6 +299,201 @@ def update_balance_on_holding_change(sender, instance, **kwargs):
     """Update total balance when crypto holdings change"""
     TotalBalance.update_user_balance(instance.user)
 
+    name = models.CharField(max_length=50)
+    symbol = models.CharField(max_length=10)
+    logo = models.ImageField(upload_to='crypto_logos/', blank=True, null=True)
+    coin_price = models.DecimalField(max_digits=20, decimal_places=2)
+    market_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.symbol})"
+    
+    def get_icon_class(self):
+        """Return appropriate FontAwesome icon class based on cryptocurrency"""
+        icon_map = {
+            'BTC': 'fab fa-bitcoin text-orange-500',
+            'ETH': 'fab fa-ethereum text-purple-500',
+            'BNB': 'fab fa-bnb text-yellow-500',
+            'XRP': 'fas fa-x text-black',
+            'ADA': 'fab fa-ada text-blue-500',
+            'DOGE': 'fab fa-dogecoin text-yellow-400',
+        }
+        return icon_map.get(self.symbol, 'fas fa-coins text-gray-500')
+
+    def get_price_change(self):
+        """Return price change percentage - you can modify this logic"""
+        return 2.5  # Example fixed value - replace with your logic
+
+
+# Admin Wallet for each cryptocurrency
+class AdminWallet(models.Model):
+    cryptocurrency = models.OneToOneField(Crytocurrency, on_delete=models.CASCADE)
+    wallet_address = models.CharField(max_length=255, unique=True)
+    qr_code = models.ImageField(upload_to='wallet_qrcodes/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.cryptocurrency.symbol} Admin Wallet: {self.wallet_address[:10]}..."
+
+
+# User cryptocurrency holdings
+class UserCryptoHolding(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    cryptocurrency = models.ForeignKey(Crytocurrency, on_delete=models.CASCADE)
+    amount_in_usd = models.DecimalField(max_digits=20, decimal_places=2)
+    amount = models.DecimalField(max_digits=20, decimal_places=8)
+    acquired_at = models.DateTimeField(auto_now_add=True)
+
+    # calculate amount based on current coin price
+    def save(self, *args, **kwargs):
+        self.amount = self.amount_in_usd / self.cryptocurrency.coin_price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.amount} of {self.cryptocurrency.symbol} held by {self.user.username}"
+
+
+# deposit status choices
+DEPOSIT_STATUS_CHOICES = [
+    ('pending', 'Pending'),
+    ('completed', 'Completed'),
+    ('failed', 'Failed'),
+]
+
+# Simple Deposit model - ONLY USD AMOUNT
+class Deposit(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    cryptocurrency = models.ForeignKey(Crytocurrency, on_delete=models.CASCADE)
+    amount_in_usd = models.DecimalField(max_digits=20, decimal_places=2)  # Only USD amount
+    admin_wallet = models.ForeignKey(AdminWallet, on_delete=models.CASCADE, null=True, blank=True)  # Wallet user deposited to
+    tx_hash = models.CharField(max_length=255, blank=True, null=True)  # Transaction hash from blockchain
+    status = models.CharField(max_length=20, default='pending', choices=DEPOSIT_STATUS_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Deposit: ${self.amount_in_usd} for {self.cryptocurrency.symbol} by {self.user.username}"
+
+    def save(self, *args, **kwargs):
+        # Get old status if updating
+        old_status = None
+        if self.pk:
+            try:
+                old_instance = Deposit.objects.get(pk=self.pk)
+                old_status = old_instance.status
+            except Deposit.DoesNotExist:
+                pass
+        
+        # Set admin wallet if not set
+        if not self.admin_wallet:
+            try:
+                admin_wallet = AdminWallet.objects.get(cryptocurrency=self.cryptocurrency, is_active=True)
+                self.admin_wallet = admin_wallet
+            except AdminWallet.DoesNotExist:
+                pass
+        
+        super().save(*args, **kwargs)
+        
+        # Update user holdings when deposit status changes to completed
+        if self.status == 'completed' and old_status != 'completed':
+            holding, created = UserCryptoHolding.objects.get_or_create(
+                user=self.user,
+                cryptocurrency=self.cryptocurrency,
+                defaults={'amount_in_usd': self.amount_in_usd}
+            )
+            if not created:
+                holding.amount_in_usd += self.amount_in_usd
+                holding.save()  # This will automatically recalculate the amount
+            
+            # Update total balance
+            TotalBalance.update_user_balance(self.user)
+
+
+# withdrawal status choices
+WITHDRAWAL_STATUS_CHOICES = [
+    ('pending', 'Pending'),
+    ('completed', 'Completed'),
+    ('failed', 'Failed'),
+]
+
+# Simple Withdrawal model - ONLY USD AMOUNT  
+class Withdrawal(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    cryptocurrency = models.ForeignKey(Crytocurrency, on_delete=models.CASCADE)
+    amount_in_usd = models.DecimalField(max_digits=20, decimal_places=2)  # Only USD amount
+    user_wallet_address = models.CharField(max_length=255)  # User's external wallet address
+    tx_hash = models.CharField(max_length=255, blank=True, null=True)  # Transaction hash from blockchain
+    status = models.CharField(max_length=20, default='pending', choices=WITHDRAWAL_STATUS_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Withdrawal: ${self.amount_in_usd} from {self.cryptocurrency.symbol} by {self.user.username}"
+
+    def save(self, *args, **kwargs):
+        # Get old status if updating
+        old_status = None
+        if self.pk:
+            try:
+                old_instance = Withdrawal.objects.get(pk=self.pk)
+                old_status = old_instance.status
+            except Withdrawal.DoesNotExist:
+                pass
+        
+        super().save(*args, **kwargs)
+        
+        # Update user holdings when withdrawal status changes to completed
+        if self.status == 'completed' and old_status != 'completed':
+            try:
+                holding = UserCryptoHolding.objects.get(
+                    user=self.user,
+                    cryptocurrency=self.cryptocurrency
+                )
+                if holding.amount_in_usd >= self.amount_in_usd:
+                    holding.amount_in_usd -= self.amount_in_usd
+                    holding.save()  # This will automatically recalculate the amount
+                    
+                    # Update total balance
+                    TotalBalance.update_user_balance(self.user)
+            except UserCryptoHolding.DoesNotExist:
+                pass  # No holding to withdraw from
+
+
+# Total Balance model to sum all user crypto assets in USD
+class TotalBalance(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    total_usd_balance = models.DecimalField(max_digits=20, decimal_places=2, default=0)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Total Balance: ${self.total_usd_balance} for {self.user.username}"
+
+    def calculate_total_balance(self):
+        """Calculate total USD balance from all crypto holdings"""
+        holdings = UserCryptoHolding.objects.filter(user=self.user)
+        total = sum(holding.amount_in_usd for holding in holdings)
+        self.total_usd_balance = total
+        self.save()
+        return total
+
+    @classmethod
+    def update_user_balance(cls, user):
+        """Update or create total balance for a user"""
+        balance, created = cls.objects.get_or_create(user=user)
+        balance.calculate_total_balance()
+        return balance
+
+
+# Signals to automatically update total balance when UserCryptoHolding changes
+@receiver(post_save, sender=UserCryptoHolding)
+@receiver(post_delete, sender=UserCryptoHolding)
+def update_balance_on_holding_change(sender, instance, **kwargs):
+    """Update total balance when crypto holdings change"""
+    TotalBalance.update_user_balance(instance.user)
+
 
 # Signal to create TotalBalance when new user is created
 @receiver(post_save, sender=User)
@@ -306,3 +501,70 @@ def create_user_balance(sender, instance, created, **kwargs):
     """Create TotalBalance when new user is created"""
     if created:
         TotalBalance.objects.create(user=instance)
+
+
+# ==========================================
+# INVESTMENT MODELS
+# ==========================================
+
+class InvestmentPlan(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    min_amount = models.DecimalField(max_digits=20, decimal_places=2)
+    max_amount = models.DecimalField(max_digits=20, decimal_places=2)
+    daily_interest_rate = models.DecimalField(max_digits=5, decimal_places=2, help_text="Percentage per day (e.g., 2.5 for 2.5%)")
+    duration_days = models.IntegerField(help_text="Investment duration in days")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.daily_interest_rate}% daily for {self.duration_days} days)"
+
+
+class UserInvestment(models.Model):
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='investments')
+    plan = models.ForeignKey(InvestmentPlan, on_delete=models.PROTECT)
+    cryptocurrency = models.ForeignKey(Crytocurrency, on_delete=models.PROTECT)
+    amount_invested = models.DecimalField(max_digits=20, decimal_places=8, help_text="Amount in crypto units")
+    amount_in_usd = models.DecimalField(max_digits=20, decimal_places=2, help_text="USD value at time of investment")
+    daily_profit = models.DecimalField(max_digits=20, decimal_places=2, default=0, help_text="Daily profit in USD")
+    total_profit_earned = models.DecimalField(max_digits=20, decimal_places=2, default=0, help_text="Total accumulated profit in USD")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    start_date = models.DateTimeField(auto_now_add=True)
+    end_date = models.DateTimeField()
+    last_profit_date = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.plan.name} - ${self.amount_in_usd}"
+
+    def save(self, *args, **kwargs):
+        if not self.end_date and self.plan:
+            self.end_date = timezone.now() + timezone.timedelta(days=self.plan.duration_days)
+        if not self.daily_profit and self.plan and self.amount_in_usd:
+            # Calculate daily profit in USD
+            self.daily_profit = self.amount_in_usd * (self.plan.daily_interest_rate / 100)
+        super().save(*args, **kwargs)
+
+
+class InvestmentTransaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('investment_start', 'Investment Start'),
+        ('daily_profit', 'Daily Profit'),
+        ('final_payout', 'Final Payout'),
+    ]
+
+    investment = models.ForeignKey(UserInvestment, on_delete=models.CASCADE, related_name='transactions')
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    amount = models.DecimalField(max_digits=20, decimal_places=2, help_text="Amount in USD")
+    description = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} - ${self.amount} - {self.investment}"

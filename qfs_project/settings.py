@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'django_celery_beat',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -139,3 +141,25 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'home'
 
+
+# Celery Configuration
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Use Redis as broker
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
+# Celery Beat Schedule
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'distribute-daily-profits': {
+        'task': 'core.tasks.distribute_daily_profits',
+        'schedule': crontab(hour=0, minute=0),  # Run daily at midnight
+    },
+    'process-matured-investments': {
+        'task': 'core.tasks.process_matured_investments',
+        'schedule': crontab(hour=0, minute=30),  # Run daily at 00:30
+    },
+}

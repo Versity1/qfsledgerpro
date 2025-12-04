@@ -16,18 +16,20 @@ from django.contrib.auth.forms import PasswordChangeForm
 
 from .models import (
     UserProfile, ConnectWallet, AssetRecoveryForm, KYCVerification,
-    Crytocurrency, AdminWallet, UserCryptoHolding, Deposit, Withdrawal, TotalBalance, CryptoPlatform
+    Crytocurrency, AdminWallet, UserCryptoHolding, Deposit, Withdrawal, TotalBalance, CryptoPlatform,
+    InvestmentPlan, UserInvestment, InvestmentTransaction
 )
 from .forms import (
     CustomUserCreationForm, LoginForm, ProfileUpdateForm,
     DepositRequestForm, WithdrawalRequestForm, WalletConnectForm,
-    AssetRecoveryRequestForm, KYCSubmissionForm
+    AssetRecoveryRequestForm, KYCSubmissionForm, CreateInvestmentForm
 )
 from .utils import (
     send_welcome_email, send_deposit_confirmation_email,
     send_withdrawal_confirmation_email, send_profile_update_email,
     send_password_change_email, send_wallet_connection_email,
-    send_asset_recovery_email, send_kyc_submission_email
+    send_asset_recovery_email, send_kyc_submission_email,
+    send_investment_confirmation_email
 )
 
 
@@ -619,3 +621,105 @@ def password_reset_confirm(request, uidb64, token):
 def password_reset_complete(request):
     """Show confirmation that password was reset"""
     return render(request, 'password_reset_complete.html')
+
+
+# ==========================================
+# INVESTMENT VIEWS
+# ==========================================
+
+@login_required
+def investment_plans_view(request):
+    """Display available investment plans"""
+    plans = InvestmentPlan.objects.filter(is_active=True).order_by('min_amount')
+    
+    # Get user balances for context
+    user_holdings = UserCryptoHolding.objects.filter(user=request.user, amount_in_usd__gt=0)
+    
+    context = {
+        'plans': plans,
+        'user_holdings': user_holdings
+    }
+    return render(request, 'investment_plans.html', context)
+
+
+@login_required
+def create_investment_view(request, plan_id):
+    """Handle investment creation"""
+    plan = get_object_or_404(InvestmentPlan, id=plan_id, is_active=True)
+    
+    if request.method == 'POST':
+        form = CreateInvestmentForm(request.user, plan, request.POST)
+        if form.is_valid():
+            cryptocurrency = form.cleaned_data['cryptocurrency']
+            amount = form.cleaned_data['amount']
+            
+            # Deduct from user balance
+            holding = UserCryptoHolding.objects.get(user=request.user, cryptocurrency=cryptocurrency)
+            holding.amount_in_usd -= amount
+            holding.save()
+            
+            # Update total balance
+            TotalBalance.update_user_balance(request.user)
+            
+            # Create investment
+            investment = UserInvestment.objects.create(
+                user=request.user,
+                plan=plan,
+                cryptocurrency=cryptocurrency,
+                amount_in_usd=amount,
+                amount_invested=amount / cryptocurrency.coin_price, # Store crypto amount
+                status='active'
+            )
+            
+            # Create transaction record
+            InvestmentTransaction.objects.create(
+                investment=investment,
+                transaction_type='investment_start',
+                amount=amount,
+                description=f"Initial investment in {plan.name} plan"
+            )
+            
+            # Send confirmation email
+            send_investment_confirmation_email(request.user, investment)
+            
+            messages.success(request, f'Successfully invested ${amount} in {plan.name} plan!')
+            return redirect('my_investments')
+    else:
+        form = CreateInvestmentForm(request.user, plan)
+    
+    context = {
+        'form': form,
+        'plan': plan
+    }
+    return render(request, 'create_investment.html', context)
+
+
+@login_required
+def my_investments_view(request):
+    """List user's investments"""
+    active_investments = UserInvestment.objects.filter(user=request.user, status='active').order_by('-start_date')
+    completed_investments = UserInvestment.objects.filter(user=request.user).exclude(status='active').order_by('-end_date')
+    
+    total_active_investment = sum(inv.amount_in_usd for inv in active_investments)
+    total_profit_earned = sum(inv.total_profit_earned for inv in UserInvestment.objects.filter(user=request.user))
+    
+    context = {
+        'active_investments': active_investments,
+        'completed_investments': completed_investments,
+        'total_active_investment': total_active_investment,
+        'total_profit_earned': total_profit_earned
+    }
+    return render(request, 'my_investments.html', context)
+
+
+@login_required
+def investment_detail_view(request, investment_id):
+    """Detail view for a specific investment"""
+    investment = get_object_or_404(UserInvestment, id=investment_id, user=request.user)
+    transactions = investment.transactions.all().order_by('-created_at')
+    
+    context = {
+        'investment': investment,
+        'transactions': transactions
+    }
+    return render(request, 'investment_detail.html', context)

@@ -1,0 +1,132 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <a href="{% url 'investment_plans' %}" class="btn btn-ghost mb-4">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Plans
+        </a>
+
+        <div class="card bg-base-100 shadow-xl border border-gray-200">
+            <div class="card-body">
+                <h2 class="card-title text-2xl font-bold mb-6">Invest in {{ plan.name }} Plan</h2>
+
+                <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                    <h3 class="font-semibold text-blue-800 mb-2">Plan Details</h3>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-500">Daily Interest:</span>
+                            <span class="font-bold text-gray-800">{{ plan.daily_interest_rate }}%</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Duration:</span>
+                            <span class="font-bold text-gray-800">{{ plan.duration_days }} Days</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Min Amount:</span>
+                            <span class="font-bold text-gray-800">${{ plan.min_amount }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500">Max Amount:</span>
+                            <span class="font-bold text-gray-800">${{ plan.max_amount }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-error">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            {% for error in form.non_field_errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">Select Payment Wallet</span>
+                        </label>
+                        {{ form.cryptocurrency }}
+                        {% if form.cryptocurrency.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.cryptocurrency.errors.0 }}</span>
+                        </label>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">Investment Amount (USD)</span>
+                        </label>
+                        {{ form.amount }}
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">{{ form.amount.help_text }}</span>
+                        </label>
+                        {% if form.amount.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.amount.errors.0 }}</span>
+                        </label>
+                        {% endif %}
+                    </div>
+
+                    <!-- Calculator Preview -->
+                    <div class="bg-gray-50 p-4 rounded-lg mt-4" id="calculator">
+                        <h4 class="font-semibold text-sm mb-2 text-gray-600">Estimated Returns</h4>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm">Daily Profit:</span>
+                            <span class="font-bold text-green-600" id="daily-profit">$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm">Total Profit:</span>
+                            <span class="font-bold text-green-600" id="total-profit">$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t pt-2 mt-2">
+                            <span class="font-semibold">Total Return:</span>
+                            <span class="font-bold text-primary" id="total-return">$0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full">Confirm Investment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const amountInput = document.getElementById('id_amount');
+        const dailyProfitEl = document.getElementById('daily-profit');
+        const totalProfitEl = document.getElementById('total-profit');
+        const totalReturnEl = document.getElementById('total-return');
+
+        const dailyRate = {{ plan.daily_interest_rate }
+    };
+    const duration = {{ plan.duration_days }};
+
+    function updateCalculator() {
+        const amount = parseFloat(amountInput.value) || 0;
+
+        const dailyProfit = amount * (dailyRate / 100);
+        const totalProfit = dailyProfit * duration;
+        const totalReturn = amount + totalProfit;
+
+        dailyProfitEl.textContent = '$' + dailyProfit.toFixed(2);
+        totalProfitEl.textContent = '$' + totalProfit.toFixed(2);
+        totalReturnEl.textContent = '$' + totalReturn.toFixed(2);
+    }
+
+    amountInput.addEventListener('input', updateCalculator);
+    });
+</script>
+{% endblock %}
