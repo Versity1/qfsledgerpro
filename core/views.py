@@ -16,7 +16,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 
 from .models import (
     UserProfile, ConnectWallet, AssetRecoveryForm, KYCVerification,
-    Crytocurrency, AdminWallet, UserCryptoHolding, Deposit, Withdrawal, TotalBalance
+    Crytocurrency, AdminWallet, UserCryptoHolding, Deposit, Withdrawal, TotalBalance, CryptoPlatform
 )
 from .forms import (
     CustomUserCreationForm, LoginForm, ProfileUpdateForm,
@@ -34,6 +34,17 @@ from .utils import (
 def home(request):
     """Home page view"""
     return render(request, 'home.html')
+
+# =========================================
+# BUY CRYPTO VIEW
+# =========================================
+def buy_crypto_view(request):
+    """View to display crypto buying platforms so that users can choose from"""
+    platforms = CryptoPlatform.objects.all() 
+    context = {
+        'platforms': platforms
+    }
+    return render(request, 'buy_crypto.html', context)
 
 
 def login_view(request):

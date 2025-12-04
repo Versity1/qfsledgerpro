@@ -35,7 +35,8 @@
                         <span class="text-xs md:text-sm">Send</span>
                     </button>
                 </div>
-                <a href="" class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
+                <a href="{% url 'buy_crypto' %}"
+                    class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
                     <i class="fas fa-shopping-cart mr-1 md:mr-2"></i>
                     <span class="text-xs md:text-sm">Buy</span>
                 </a>
@@ -70,7 +71,8 @@
                     </div>
                     <div class="text-right">
                         <p class="font-bold">${{ item.amount_in_usd|stringformat:".2f" }}</p>
-                        <p class="text-sm text-gray-500">{{ item.amount|stringformat:".6f" }} {{ item.cryptocurrency.symbol }}</p>
+                        <p class="text-sm text-gray-500">{{ item.amount|stringformat:".6f" }} {{
+                            item.cryptocurrency.symbol }}</p>
                     </div>
                 </div>
             </div>
@@ -103,7 +105,8 @@
                     <label class="label"><span class="label-text">Select Cryptocurrency</span></label>
                     <select name="cryptocurrency" class="select select-bordered w-full" required>
                         {% for item in crypto_data %}
-                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{ item.cryptocurrency.symbol }})</option>
+                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{
+                            item.cryptocurrency.symbol }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -140,7 +143,8 @@
                     <label class="label"><span class="label-text">Select Cryptocurrency</span></label>
                     <select name="cryptocurrency" class="select select-bordered w-full" required>
                         {% for item in crypto_data %}
-                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{ item.cryptocurrency.symbol }})</option>
+                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{
+                            item.cryptocurrency.symbol }})</option>
                         {% endfor %}
                     </select>
                 </div>

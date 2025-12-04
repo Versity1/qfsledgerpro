@@ -21,6 +21,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('profile/', views.profile_view, name='profile'),
     path('change-password/', views.change_password_view, name='change_password'),
+    path('buy-crypto/', views.buy_crypto_view, name='buy_crypto'),
 
     # Crypto Operations
     path('deposit/', views.deposit_request_view, name='deposit'),

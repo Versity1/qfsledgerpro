@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
     UserProfile, ConnectWallet, AssetRecoveryForm, KYCVerification,
-    Crytocurrency, AdminWallet, UserCryptoHolding, Deposit, Withdrawal, TotalBalance
+    Crytocurrency, AdminWallet, UserCryptoHolding, Deposit, Withdrawal, TotalBalance, CryptoPlatform
 )
 
 # User Profile Admin
@@ -79,6 +79,18 @@ class CrytocurrencyAdmin(admin.ModelAdmin):
     def logo_preview(self, obj):
         if obj.logo:
             return format_html('<img src="{}" style="width: 30px; height: 30px;" />', obj.logo.url)
+        return "-"
+    logo_preview.short_description = "Logo"
+
+# Crypto Platform Admin
+@admin.register(CryptoPlatform)
+class CryptoPlatformAdmin(admin.ModelAdmin):
+    list_display = ('name', 'link_address', 'logo_preview')
+    search_fields = ('name', 'link_address')
+    
+    def logo_preview(self, obj):
+        if obj.platform_logo:
+            return format_html('<img src="{}" style="width: 40px; height: 40px; object-fit: contain;" />', obj.platform_logo.url)
         return "-"
     logo_preview.short_description = "Logo"
 

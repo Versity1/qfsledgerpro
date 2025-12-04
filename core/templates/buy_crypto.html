@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block content %}
+<!-- Main Content -->
+<main class="flex-1 p-4 md:p-6">
+    <!-- Page Header -->
+    <div class="mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-dark mb-2">
+            <i class="fas fa-shopping-cart mr-2 text-primary"></i>
+            Buy Cryptocurrency
+        </h1>
+        <p class="text-gray-600">Choose from our trusted cryptocurrency platforms to purchase digital assets</p>
+    </div>
+
+    <!-- Info Card -->
+    <div class="card bg-gradient-to-r from-primary to-secondary text-white shadow-xl mb-6">
+        <div class="card-body p-4 md:p-6">
+            <div class="flex items-start gap-4">
+                <div class="bg-white bg-opacity-20 p-3 rounded-lg">
+                    <i class="fas fa-info-circle text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-2">How to Buy Cryptocurrency</h3>
+                    <p class="text-sm opacity-90">
+                        Select a platform below to purchase cryptocurrency. Each platform offers secure transactions
+                        and competitive rates. After purchasing, you can deposit your crypto to your wallet address.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Platforms Grid -->
+    {% if platforms %}
+    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {% for platform in platforms %}
+        <div class="card bg-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            <div class="card-body p-6">
+                <!-- Platform Logo -->
+                <div class="flex justify-center mb-4">
+                    {% if platform.platform_logo %}
+                    <div class="avatar">
+                        <div class="w-24 h-24 rounded-lg">
+                            <img src="{{ platform.platform_logo.url }}" alt="{{ platform.name }}"
+                                class="object-contain">
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="avatar placeholder">
+                        <div class="bg-gradient-to-br from-primary to-secondary text-white rounded-lg w-24 h-24">
+                            <span class="text-3xl font-bold">{{ platform.name|slice:":2"|upper }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Platform Name -->
+                <h3 class="card-title text-xl font-bold text-center text-dark justify-center">
+                    {{ platform.name }}
+                </h3>
+
+                <!-- Action Button -->
+                <div class="card-actions justify-center mt-4">
+                    <a href="{{ platform.link_address }}" target="_blank" rel="noopener noreferrer"
+                        class="btn btn-primary text-white w-full">
+                        <i class="fas fa-external-link-alt mr-2"></i>
+                        Visit
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="card bg-white shadow-md">
+        <div class="card-body p-12 text-center">
+            <div class="flex justify-center mb-6">
+                <div class="bg-gray-100 rounded-full p-8">
+                    <i class="fas fa-store-slash text-gray-300 text-6xl"></i>
+                </div>
+            </div>
+            <h3 class="font-bold text-2xl text-dark mb-3">No Platforms Available</h3>
+            <p class="text-gray-500 mb-6">
+                There are currently no cryptocurrency platforms available. Please check back later or contact support.
+            </p>
+            <a href="{% url 'dashboard' %}" class="btn btn-primary text-white">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Additional Information -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Security -->
+        <div class="card bg-white shadow-md">
+            <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-lg">
+                        <i class="fas fa-shield-alt text-primary text-2xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-dark">Secure</h4>
+                        <p class="text-sm text-gray-600">Bank-level security</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support -->
+        <div class="card bg-white shadow-md">
+            <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-secondary bg-opacity-10 p-3 rounded-lg">
+                        <i class="fas fa-headset text-secondary text-2xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-dark">24/7 Support</h4>
+                        <p class="text-sm text-gray-600">Always here to help</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fast -->
+        <div class="card bg-white shadow-md">
+            <div class="card-body p-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-green-100 p-3 rounded-lg">
+                        <i class="fas fa-bolt text-green-600 text-2xl"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-dark">Fast</h4>
+                        <p class="text-sm text-gray-600">Quick transactions</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="card bg-white shadow-md mt-6">
+        <div class="card-body p-6">
+            <h3 class="font-bold text-lg text-dark mb-3">
+                <i class="fas fa-question-circle mr-2 text-primary"></i>
+                Need Help?
+            </h3>
+            <p class="text-gray-600 mb-4">
+                If you have any questions about purchasing cryptocurrency or need assistance,
+                our support team is available 24/7 to help you.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="mailto:support@qfsledgerpro.com" class="btn btn-outline btn-primary">
+                    <i class="fas fa-envelope mr-2"></i>
+                    Email Support
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

@@ -17,6 +17,13 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} Profile"
 
+
+# cryptocurrency platforms
+class CryptoPlatform(models.Model):
+    name = models.CharField(max_length=100)
+    link_address = models.URLField()
+    platform_logo = models.ImageField(upload_to='platform_logos/', blank=True, null=True)
+
 class ConnectWallet(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  # Changed to OneToOneField
     # either mnemonic phrase or keystore_json or private_key
