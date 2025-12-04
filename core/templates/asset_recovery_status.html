@@ -1,14 +1,15 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-<div class="p-6 max-w-4xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">Recovery Requests Status</h1>
-        <a href="{% url 'asset_recovery' %}" class="btn btn-primary btn-sm">New Request</a>
+<div class="p-4 md:p-6 max-w-4xl mx-auto">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
+        <h1 class="text-xl md:text-2xl font-bold">Recovery Requests Status</h1>
+        <a href="{% url 'asset_recovery' %}" class="btn btn-primary btn-sm w-full sm:w-auto">New Request</a>
     </div>
 
     <div class="card bg-base-100 shadow-xl">
-        <div class="overflow-x-auto">
+        <!-- Desktop Table View -->
+        <div class="hidden md:block overflow-x-auto">
             <table class="table w-full">
                 <thead>
                     <tr>
@@ -39,6 +40,38 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+
+        <!-- Mobile Card View -->
+        <div class="md:hidden">
+            {% for req in requests %}
+            <div class="border-b border-gray-200 p-4 hover:bg-gray-50">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <p class="font-mono text-sm font-bold text-primary">#{{ req.id }}</p>
+                        <p class="text-xs text-gray-500">{{ req.submitted_at|date:"M d, Y" }}</p>
+                    </div>
+                    <span class="badge badge-info text-white">{{ req.get_status_display }}</span>
+                </div>
+
+                <div class="space-y-2">
+                    <div>
+                        <p class="text-xs text-gray-500 font-semibold">Wallet Address</p>
+                        <p class="font-mono text-xs break-all">{{ req.wallet_address }}</p>
+                    </div>
+
+                    <div>
+                        <p class="text-xs text-gray-500 font-semibold">Details</p>
+                        <p class="text-sm">{{ req.asset_details }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-inbox text-4xl mb-3 text-gray-300"></i>
+                <p>No recovery requests found.</p>
+            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
