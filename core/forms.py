@@ -414,3 +414,37 @@ class CreateInvestmentForm(forms.Form):
                 raise ValidationError(f"You do not have any balance in {cryptocurrency.symbol}.")
         
         return cleaned_data
+
+
+class MedbedRequestForm(forms.ModelForm):
+    """Form for Medbed requests"""
+    class Meta:
+        from .models import MedbedRequest
+        model = MedbedRequest
+        fields = ['full_name', 'email', 'phone_number', 'request_type', 'preferred_date', 'medical_conditions']
+        widgets = {
+            'full_name': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': 'Your Full Name'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': 'your.email@example.com'
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': '+1234567890'
+            }),
+            'request_type': forms.Select(attrs={
+                'class': 'select select-bordered w-full'
+            }),
+            'preferred_date': forms.DateInput(attrs={
+                'class': 'input input-bordered w-full',
+                'type': 'date'
+            }),
+            'medical_conditions': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'placeholder': 'Please describe your condition...',
+                'rows': 4
+            }),
+        }

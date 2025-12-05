@@ -1,28 +1,27 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth import login as auth_login, logout as auth_logout, authenticate, update_session_auth_hash
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.template.loader import render_to_string
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.shortcuts import get_current_site
 from django.utils import timezone
 from django.core.paginator import Paginator
-from django.db.models import Q
 from django.contrib.auth.forms import PasswordChangeForm
-
 from .models import (
-    UserProfile, ConnectWallet, AssetRecoveryForm, KYCVerification,
-    Crytocurrency, AdminWallet, UserCryptoHolding, Deposit, Withdrawal, TotalBalance, CryptoPlatform,
-    InvestmentPlan, UserInvestment, InvestmentTransaction
+    UserProfile, TotalBalance, Crytocurrency, UserCryptoHolding,
+    Deposit, Withdrawal, AdminWallet, ConnectWallet, AssetRecoveryForm,
+    KYCVerification, CryptoPlatform, InvestmentPlan, UserInvestment, InvestmentTransaction
 )
 from .forms import (
     CustomUserCreationForm, LoginForm, ProfileUpdateForm,
     DepositRequestForm, WithdrawalRequestForm, WalletConnectForm,
-    AssetRecoveryRequestForm, KYCSubmissionForm, CreateInvestmentForm
+    AssetRecoveryRequestForm, KYCSubmissionForm, CreateInvestmentForm,
+    MedbedRequestForm
 )
 from .utils import (
     send_welcome_email, send_deposit_confirmation_email,
@@ -723,3 +722,40 @@ def investment_detail_view(request, investment_id):
         'transactions': transactions
     }
     return render(request, 'investment_detail.html', context)
+
+
+# ==========================================
+# MEDBED VIEWS
+# ==========================================
+
+@login_required
+def medbed_request_view(request):
+    """Handle Medbed service requests"""
+    if request.method == 'POST':
+        form = MedbedRequestForm(request.POST)
+        if form.is_valid():
+            medbed_request = form.save(commit=False)
+            medbed_request.user = request.user
+            medbed_request.save()
+            
+            messages.success(request, 'Your Medbed request has been submitted successfully!')
+            return redirect('medbed_success')
+    else:
+        try:
+            phone_number = request.user.userprofile.phone_number
+        except:
+            phone_number = ''
+            
+        form = MedbedRequestForm(initial={
+            'full_name': f"{request.user.first_name} {request.user.last_name}",
+            'email': request.user.email,
+            'phone_number': phone_number
+        })
+    
+    return render(request, 'medbed_request.html', {'form': form})
+
+
+@login_required
+def medbed_success_view(request):
+    """Show Medbed request success page"""
+    return render(request, 'medbed_success.html')

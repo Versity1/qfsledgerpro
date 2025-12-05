@@ -214,3 +214,15 @@ class InvestmentTransactionAdmin(admin.ModelAdmin):
     list_filter = ('transaction_type', 'created_at')
     search_fields = ('investment__user__username', 'description')
     readonly_fields = ('created_at',)
+
+
+# Medbed Request Admin
+from .models import MedbedRequest
+
+@admin.register(MedbedRequest)
+class MedbedRequestAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'email', 'request_type', 'status', 'created_at')
+    list_filter = ('status', 'request_type', 'created_at')
+    search_fields = ('full_name', 'email', 'phone_number')
+    readonly_fields = ('created_at', 'updated_at')
+    list_editable = ('status',)

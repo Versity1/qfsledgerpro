@@ -43,6 +43,10 @@ urlpatterns = [
     path('investments/create/<int:plan_id>/', views.create_investment_view, name='create_investment'),
     path('investments/my-investments/', views.my_investments_view, name='my_investments'),
     path('investments/detail/<int:investment_id>/', views.investment_detail_view, name='investment_detail'),
+
+    # Medbed System
+    path('medbed/request/', views.medbed_request_view, name='medbed_request'),
+    path('medbed/success/', views.medbed_success_view, name='medbed_success'),
 ]
 
 # Serve media files during development

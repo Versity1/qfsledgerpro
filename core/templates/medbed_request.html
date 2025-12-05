@@ -1,0 +1,96 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Medbed Services</h1>
+            <p class="text-gray-600 mt-2">Request a booking or inquiry for our advanced Medbed technology.</p>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl border border-gray-200">
+            <div class="card-body">
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-error">
+                        <div>
+                            {% for error in form.non_field_errors %}
+                            <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">Full Name</span>
+                        </label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                        <span class="text-error text-sm">{{ form.full_name.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text font-semibold">Email Address</span>
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                            <span class="text-error text-sm">{{ form.email.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text font-semibold">Phone Number</span>
+                            </label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                            <span class="text-error text-sm">{{ form.phone_number.errors.0 }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text font-semibold">Request Type</span>
+                            </label>
+                            {{ form.request_type }}
+                        </div>
+
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text font-semibold">Preferred Date</span>
+                            </label>
+                            {{ form.preferred_date }}
+                        </div>
+                    </div>
+
+                    <div class="form-control w-full">
+                        <label class="label">
+                            <span class="label-text font-semibold">Medical Conditions / Details</span>
+                        </label>
+                        {{ form.medical_conditions }}
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">{{ form.medical_conditions.help_text }}</span>
+                        </label>
+                        {% if form.medical_conditions.errors %}
+                        <span class="text-error text-sm">{{ form.medical_conditions.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-6">
+                        <button type="submit" class="btn btn-primary w-full">Submit Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

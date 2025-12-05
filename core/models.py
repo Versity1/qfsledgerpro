@@ -568,3 +568,35 @@ class InvestmentTransaction(models.Model):
 
     def __str__(self):
         return f"{self.get_transaction_type_display()} - ${self.amount} - {self.investment}"
+
+
+# ==========================================
+# MEDBED MODELS
+# ==========================================
+
+class MedbedRequest(models.Model):
+    REQUEST_TYPE_CHOICES = [
+        ('booking', 'Booking Request'),
+        ('inquiry', 'General Inquiry'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=255)
+    email = models.EmailField()
+    phone_number = models.CharField(max_length=20)
+    request_type = models.CharField(max_length=20, choices=REQUEST_TYPE_CHOICES, default='booking')
+    preferred_date = models.DateField(null=True, blank=True)
+    medical_conditions = models.TextField(help_text="Please describe any medical conditions or reasons for this request.")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Medbed {self.request_type} - {self.full_name}"
