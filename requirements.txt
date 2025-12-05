@@ -1,3 +1,6 @@
 django
 pillow
 whitenoise
+celery
+django-celery-beat
+django_celery_results

@@ -110,23 +110,22 @@
         const totalProfitEl = document.getElementById('total-profit');
         const totalReturnEl = document.getElementById('total-return');
 
-        const dailyRate = {{ plan.daily_interest_rate }
-    };
-    const duration = {{ plan.duration_days }};
+        const dailyRate = {{ plan.daily_interest_rate }};
+        const duration = {{ plan.duration_days }};
 
-    function updateCalculator() {
-        const amount = parseFloat(amountInput.value) || 0;
+        function updateCalculator() {
+            const amount = parseFloat(amountInput.value) || 0;
 
-        const dailyProfit = amount * (dailyRate / 100);
-        const totalProfit = dailyProfit * duration;
-        const totalReturn = amount + totalProfit;
+            const dailyProfit = amount * (dailyRate / 100);
+            const totalProfit = dailyProfit * duration;
+            const totalReturn = amount + totalProfit;
 
-        dailyProfitEl.textContent = '$' + dailyProfit.toFixed(2);
-        totalProfitEl.textContent = '$' + totalProfit.toFixed(2);
-        totalReturnEl.textContent = '$' + totalReturn.toFixed(2);
-    }
+            dailyProfitEl.textContent = '$' + dailyProfit.toFixed(2);
+            totalProfitEl.textContent = '$' + totalProfit.toFixed(2);
+            totalReturnEl.textContent = '$' + totalReturn.toFixed(2);
+        }
 
-    amountInput.addEventListener('input', updateCalculator);
+        amountInput.addEventListener('input', updateCalculator);
     });
 </script>
 {% endblock %}

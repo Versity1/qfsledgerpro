@@ -29,13 +29,11 @@
                         <div class="bg-gray-50 p-4 rounded-lg">
                             <span class="text-gray-500 block mb-1">Invested Amount</span>
                             <span class="text-2xl font-bold text-gray-800">${{ investment.amount_in_usd }}</span>
-                            <span class="text-xs text-gray-500 block">{{ investment.amount_invested|floatformat:6 }} {{
-                                investment.cryptocurrency.symbol }}</span>
+                            <span class="text-xs text-gray-500 block">{{ investment.amount_invested|floatformat:6 }} {{ investment.cryptocurrency.symbol }}</span>
                         </div>
                         <div class="bg-green-50 p-4 rounded-lg">
                             <span class="text-green-700 block mb-1">Total Profit Earned</span>
-                            <span class="text-2xl font-bold text-green-700">+${{ investment.total_profit_earned
-                                }}</span>
+                            <span class="text-2xl font-bold text-green-700">+${{ investment.total_profit_earned }}</span>
                         </div>
                     </div>
 
@@ -116,10 +114,9 @@
                 <div class="card-body">
                     <h3 class="font-bold text-lg mb-4">Investment Summary</h3>
                     <ul class="steps steps-vertical text-sm">
-                        <li class="step step-primary">Investment Started<br><span class="text-xs text-gray-500">{{
-                                investment.start_date|date:"M d, Y" }}</span></li>
+                        <li class="step step-primary">Investment Started<br><span class="text-xs text-gray-500 text-center justify-center">{{ investment.start_date|date:"M d, Y" }}</span></li>
                         <li class="step {% if investment.status == 'completed' %}step-primary{% endif %}">Maturity
-                            Date<br><span class="text-xs text-gray-500">{{ investment.end_date|date:"M d, Y" }}</span>
+                            Date<br><span class="text-xs text-gray-500 text-center justify-center">{{ investment.end_date|date:"M d, Y" }}</span>
                         </li>
                         <li class="step {% if investment.status == 'completed' %}step-primary{% endif %}">Capital Return
                         </li>

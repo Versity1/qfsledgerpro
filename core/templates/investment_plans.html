@@ -41,26 +41,26 @@
         <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow duration-300 border border-gray-200">
             <div class="card-body items-center text-center">
                 <h2 class="card-title text-2xl font-bold text-primary mb-2">{{ plan.name }}</h2>
-                <div class="text-4xl font-bold mb-4 text-gray-800">
-                    {{ plan.daily_interest_rate }}% <span class="text-sm font-normal text-gray-500">daily</span>
+                <div class="text-4xl font-bold mb-4 text-white bg-primary rounded-full px-6 py-3">
+                    {{ plan.daily_interest_rate }}% <span class="text-sm font-normal text-white">daily</span>
                 </div>
                 <p class="text-gray-600 mb-6">{{ plan.description }}</p>
 
                 <div class="w-full space-y-3 mb-6">
                     <div class="flex justify-between border-b pb-2">
-                        <span class="text-gray-500">Duration</span>
+                        <span class="text-white">Duration</span>
                         <span class="font-semibold">{{ plan.duration_days }} Days</span>
                     </div>
                     <div class="flex justify-between border-b pb-2">
-                        <span class="text-gray-500">Min Deposit</span>
+                        <span class="text-white">Min Deposit</span>
                         <span class="font-semibold">${{ plan.min_amount }}</span>
                     </div>
                     <div class="flex justify-between border-b pb-2">
-                        <span class="text-gray-500">Max Deposit</span>
+                        <span class="text-white">Max Deposit</span>
                         <span class="font-semibold">${{ plan.max_amount }}</span>
                     </div>
                     <div class="flex justify-between border-b pb-2">
-                        <span class="text-gray-500">Capital Return</span>
+                        <span class="text-white">Capital Return</span>
                         <span class="font-semibold text-green-600">Yes</span>
                     </div>
                 </div>

@@ -667,7 +667,7 @@ def create_investment_view(request, plan_id):
                 plan=plan,
                 cryptocurrency=cryptocurrency,
                 amount_in_usd=amount,
-                amount_invested=amount / cryptocurrency.coin_price, # Store crypto amount
+                amount_invested=amount / cryptocurrency.coin_price if cryptocurrency.coin_price > 0 else 0, # Store crypto amount
                 status='active'
             )
             
