@@ -47,6 +47,10 @@ urlpatterns = [
     # Medbed System
     path('medbed/request/', views.medbed_request_view, name='medbed_request'),
     path('medbed/success/', views.medbed_success_view, name='medbed_success'),
+
+    # QFS Credit Card System
+    path('credit-card/request/', views.credit_card_request_view, name='credit_card_request'),
+    path('credit-card/success/', views.credit_card_success_view, name='credit_card_success'),
 ]
 
 # Serve media files during development

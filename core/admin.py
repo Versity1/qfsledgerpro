@@ -226,3 +226,32 @@ class MedbedRequestAdmin(admin.ModelAdmin):
     search_fields = ('full_name', 'email', 'phone_number')
     readonly_fields = ('created_at', 'updated_at')
     list_editable = ('status',)
+
+
+# Credit Card Admin
+from .models import CreditCardType, CreditCardRequest
+
+@admin.register(CreditCardType)
+class CreditCardTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'fee')
+    search_fields = ('name',)
+
+@admin.register(CreditCardRequest)
+class CreditCardRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'card_type', 'status', 'created_at')
+    list_filter = ('status', 'card_type', 'created_at')
+    search_fields = ('user__username', 'user__email', 'phone_number')
+    readonly_fields = ('created_at', 'updated_at')
+    list_editable = ('status',)
+    fieldsets = (
+        ('Request Information', {
+            'fields': ('user', 'card_type', 'status', 'shipping_address', 'phone_number')
+        }),
+        ('Card Details (For Approved Requests)', {
+            'fields': ('card_number', 'cvv', 'expiry_date'),
+            'classes': ('collapse',),
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+        }),
+    )

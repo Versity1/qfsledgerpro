@@ -1,0 +1,99 @@
+{% extends 'layout.html' %}
+
+{% block title %}My QFS Credit Card{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-4">
+    <div class="card bg-gray-200 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-6 text-black">My QFS Credit Card</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <!-- Card Visual -->
+                <div
+                    class="relative w-full h-56 bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl shadow-2xl overflow-hidden text-white p-6">
+                    <!-- Background Pattern -->
+                    <div class="absolute top-0 left-0 w-full h-full opacity-10">
+                        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="1" />
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#grid)" />
+                        </svg>
+                    </div>
+
+                    <!-- Card Content -->
+                    <div class="relative z-10 flex flex-col justify-between h-full">
+                        <div class="flex justify-between items-start">
+                            <div class="text-xl font-bold tracking-widest">QFS LEDGER PRO</div>
+                            <div class="text-sm font-semibold bg-white/20 px-2 py-1 rounded">{{ card_request.card_type.name }}</div>
+                        </div>
+
+                        <div class="flex items-center gap-4 my-4">
+                            <div class="w-12 h-8 bg-yellow-500/80 rounded flex items-center justify-center">
+                                <div class="w-8 h-5 border border-yellow-600/50 rounded-sm"></div>
+                            </div>
+                            <i class="fas fa-wifi text-2xl opacity-80"></i>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="text-2xl font-mono tracking-widest drop-shadow-md">
+                                {{ card_request.card_number|default:"XXXX XXXX XXXX XXXX" }}
+                            </div>
+
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <div class="text-xs opacity-70 uppercase">Card Holder</div>
+                                    <div class="font-semibold tracking-wide uppercase">{{ card_request.user.get_full_name|default:card_request.user.username }}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs opacity-70 uppercase">Expires</div>
+                                    <div class="font-semibold tracking-wide">{{ card_request.expiry_date|default:"MM/YY" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card Details & Actions -->
+                <div class="space-y-6">
+                    <div class="stats stats-vertical shadow w-full bg-base-200">
+                        <div class="stat">
+                            <div class="stat-title">Status</div>
+                            <div class="stat-value text-success text-2xl">{{ card_request.get_status_display }}</div>
+                        </div>
+
+                        <div class="stat">
+                            <div class="stat-title">CVV</div>
+                            <div class="stat-value text-2xl tracking-widest">
+                                {% if card_request.cvv %}
+                                {{ card_request.cvv }}
+                                {% else %}
+                                ***
+                                {% endif %}
+                            </div>
+                            <div class="stat-desc">Keep this code secure</div>
+                        </div>
+
+                        <div class="stat">
+                            <div class="stat-title">Issued Date</div>
+                            <div class="stat-desc">{{ card_request.created_at|date:"F j, Y" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            class="stroke-current shrink-0 w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Your card is ready for use. For any issues, please contact support.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

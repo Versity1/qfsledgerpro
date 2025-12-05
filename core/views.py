@@ -15,13 +15,14 @@ from django.contrib.auth.forms import PasswordChangeForm
 from .models import (
     UserProfile, TotalBalance, Crytocurrency, UserCryptoHolding,
     Deposit, Withdrawal, AdminWallet, ConnectWallet, AssetRecoveryForm,
-    KYCVerification, CryptoPlatform, InvestmentPlan, UserInvestment, InvestmentTransaction
+    KYCVerification, CryptoPlatform, InvestmentPlan, UserInvestment, InvestmentTransaction,
+    MedbedRequest, CreditCardType, CreditCardRequest
 )
 from .forms import (
     CustomUserCreationForm, LoginForm, ProfileUpdateForm,
     DepositRequestForm, WithdrawalRequestForm, WalletConnectForm,
     AssetRecoveryRequestForm, KYCSubmissionForm, CreateInvestmentForm,
-    MedbedRequestForm
+    MedbedRequestForm, CreditCardRequestForm
 )
 from .utils import (
     send_welcome_email, send_deposit_confirmation_email,
@@ -759,3 +760,46 @@ def medbed_request_view(request):
 def medbed_success_view(request):
     """Show Medbed request success page"""
     return render(request, 'medbed_success.html')
+
+
+# ==========================================
+# CREDIT CARD VIEWS
+# ==========================================
+
+@login_required
+def credit_card_request_view(request):
+    """Handle QFS Credit Card requests"""
+    # Check if user already has a request
+    existing_request = CreditCardRequest.objects.filter(user=request.user).first()
+    
+    if existing_request and existing_request.status in ['approved', 'shipped']:
+        return render(request, 'credit_card_details.html', {'card_request': existing_request})
+        
+    card_types = CreditCardType.objects.all()
+    
+    if request.method == 'POST':
+        form = CreditCardRequestForm(request.POST)
+        if form.is_valid():
+            card_request = form.save(commit=False)
+            card_request.user = request.user
+            card_request.save()
+            
+            messages.success(request, 'Your QFS Credit Card request has been submitted successfully!')
+            return redirect('credit_card_success')
+    else:
+        try:
+            phone_number = request.user.userprofile.phone_number
+        except:
+            phone_number = ''
+            
+        form = CreditCardRequestForm(initial={
+            'phone_number': phone_number
+        })
+    
+    return render(request, 'credit_card_request.html', {'form': form, 'card_types': card_types})
+
+
+@login_required
+def credit_card_success_view(request):
+    """Show Credit Card request success page"""
+    return render(request, 'credit_card_success.html')

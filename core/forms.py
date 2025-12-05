@@ -448,3 +448,24 @@ class MedbedRequestForm(forms.ModelForm):
                 'rows': 4
             }),
         }
+
+class CreditCardRequestForm(forms.ModelForm):
+    """Form for QFS Credit Card requests"""
+    class Meta:
+        from .models import CreditCardRequest
+        model = CreditCardRequest
+        fields = ['card_type', 'shipping_address', 'phone_number']
+        widgets = {
+            'card_type': forms.Select(attrs={
+                'class': 'select select-bordered w-full'
+            }),
+            'shipping_address': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'placeholder': 'Enter your full shipping address...',
+                'rows': 3
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': '+1234567890'
+            }),
+        }

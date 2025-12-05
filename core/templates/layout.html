@@ -213,6 +213,12 @@
                     </a>
                 </li>
                 <li>
+                    <a class="{% if 'credit-card' in request.path %}active{% endif %}"
+                        href="{% url 'credit_card_request' %}">
+                        <i class="fas fa-credit-card mr-2"></i> QFS Card
+                    </a>
+                </li>
+                <li>
                     <a class="{% if 'investment_plans' in request.path %}active{% endif %}"
                         href="{% url 'investment_plans' %}">
                         <i class="fas fa-bar-chart mr-2"></i>Investment

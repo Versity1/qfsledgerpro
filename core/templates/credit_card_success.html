@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+
+{% block title %}Request Submitted{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto text-center">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body items-center text-center">
+            <div class="w-24 h-24 bg-success/10 rounded-full flex items-center justify-center mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-success" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+
+            <h2 class="card-title text-3xl mb-2">Request Submitted!</h2>
+            <p class="text-base-content/70 mb-6">
+                Your request for a QFS Credit Card has been successfully submitted.
+                Our team will review your details and process your request shortly.
+            </p>
+
+            <div class="flex gap-4">
+                <a href="{% url 'dashboard' %}" class="btn btn-primary">Return to Dashboard</a>
+                <a href="{% url 'credit_card_request' %}" class="btn btn-outline">Request Another Card</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

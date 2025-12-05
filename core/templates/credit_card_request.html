@@ -1,0 +1,91 @@
+{% extends 'layout.html' %}
+
+{% block title %}Request QFS Credit Card{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-2xl mb-6">Request QFS Credit Card</h2>
+
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %} mb-6">
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- Card Types Info -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {% for card in card_types %}
+                <div class="card bg-base-200 shadow-sm border border-base-300">
+                    <div class="card-body p-6">
+                        <h3 class="card-title text-primary">{{ card.name }}</h3>
+                        <p class="text-2xl font-bold my-2">${{ card.fee }}</p>
+                        <p class="text-sm opacity-70">{{ card.description }}</p>
+                        {% if card.image %}
+                        <img src="{{ card.image.url }}" alt="{{ card.name }}"
+                            class="mt-4 rounded-lg h-32 object-cover w-full">
+                        {% endif %}
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-2 alert alert-info">
+                    <span>No credit card types available at the moment. Please check back later.</span>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if card_types %}
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Card Type Selection -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Select Card Type</span>
+                        </label>
+                        {{ form.card_type }}
+                        {% if form.card_type.errors %}
+                        <span class="text-error text-sm mt-1">{{ form.card_type.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Phone Number</span>
+                        </label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}
+                        <span class="text-error text-sm mt-1">{{ form.phone_number.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Shipping Address</span>
+                    </label>
+                    {{ form.shipping_address }}
+                    {% if form.shipping_address.errors %}
+                    <span class="text-error text-sm mt-1">{{ form.shipping_address.errors.0 }}</span>
+                    {% endif %}
+                    <label class="label">
+                        <span class="label-text-alt">Please include street, city, state, zip code, and country.</span>
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end mt-8">
+                    <a href="{% url 'dashboard' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
