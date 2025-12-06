@@ -52,6 +52,8 @@ def buy_crypto_view(request):
 def login_view(request):
     """Handle user login with email notification"""
     if request.user.is_authenticated:
+        if request.user.is_staff or request.user.is_superuser:
+            return redirect('admin_dashboard')
         return redirect('dashboard')
     
     if request.method == 'POST':
@@ -104,6 +106,10 @@ def login_view(request):
                     print(f"Failed to send login notification: {e}")
                 
                 messages.success(request, f'Welcome back, {user.first_name}!')
+                
+                # Redirect based on user role
+                if user.is_staff or user.is_superuser:
+                    return redirect('admin_dashboard')
                 return redirect('dashboard')
             else:
                 messages.error(request, 'Invalid username/email or password.')
@@ -792,14 +798,694 @@ def credit_card_request_view(request):
         except:
             phone_number = ''
             
-        form = CreditCardRequestForm(initial={
-            'phone_number': phone_number
-        })
+from django.contrib.auth.decorators import user_passes_test
+
+def is_admin(user):
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+@user_passes_test(is_admin)
+def admin_dashboard_view(request):
+    """Custom Admin Dashboard"""
+    # Stats
+    total_users = User.objects.count()
+    pending_deposits = Deposit.objects.filter(status='pending').count()
+    pending_withdrawals = Withdrawal.objects.filter(status='pending').count()
+    active_investments = UserInvestment.objects.filter(status='active').count()
     
-    return render(request, 'credit_card_request.html', {'form': form, 'card_types': card_types})
+    # Quick Actions / Alerts
+    pending_card_requests_count = CreditCardRequest.objects.filter(status='pending').count()
+    pending_kyc_count = KYCVerification.objects.filter(status='pending').count()
+    
+    context = {
+        'total_users': total_users,
+        'pending_deposits': pending_deposits,
+        'pending_withdrawals': pending_withdrawals,
+        'active_investments': active_investments,
+        'pending_card_requests_count': pending_card_requests_count,
+        'pending_kyc_count': pending_kyc_count,
+    }
+    return render(request, 'custom_admin/admin_dashboard.html', context)# ==========================================
+# ADMIN MANAGEMENT VIEWS
+# ==========================================
+
+@user_passes_test(is_admin)
+def admin_users_view(request):
+    """List all users"""
+    users = User.objects.all().order_by('-date_joined')
+    return render(request, 'custom_admin/users.html', {'users': users})
 
 
-@login_required
-def credit_card_success_view(request):
-    """Show Credit Card request success page"""
-    return render(request, 'credit_card_success.html')
+@user_passes_test(is_admin)
+def admin_user_detail_view(request, user_id):
+    """View user details"""
+    user = get_object_or_404(User, id=user_id)
+    
+    # Get user stats
+    holdings = UserCryptoHolding.objects.filter(user=user)
+    total_balance = TotalBalance.objects.filter(user=user).first()
+    deposits = Deposit.objects.filter(user=user).order_by('-created_at')[:5]
+    withdrawals = Withdrawal.objects.filter(user=user).order_by('-created_at')[:5]
+    
+    context = {
+        'user_obj': user,
+        'holdings': holdings,
+        'total_balance': total_balance,
+        'deposits': deposits,
+        'withdrawals': withdrawals
+    }
+    return render(request, 'custom_admin/user_detail.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_deposits_view(request):
+    """List all deposits"""
+    deposits = Deposit.objects.all().order_by('-created_at')
+    return render(request, 'custom_admin/deposits.html', {'deposits': deposits})
+
+
+@user_passes_test(is_admin)
+def admin_update_deposit(request, deposit_id):
+    """Update deposit status"""
+    if request.method == 'POST':
+        deposit = get_object_or_404(Deposit, id=deposit_id)
+        action = request.POST.get('action')
+        
+        if action == 'approve':
+            deposit.status = 'completed'
+            deposit.save()
+            messages.success(request, f'Deposit #{deposit_id} approved successfully!')
+        elif action == 'reject':
+            deposit.status = 'failed'
+            deposit.save()
+            messages.warning(request, f'Deposit #{deposit_id} rejected.')
+    
+    return redirect('admin_deposits')
+
+
+@user_passes_test(is_admin)
+def admin_withdrawals_view(request):
+    """List all withdrawals"""
+    withdrawals = Withdrawal.objects.all().order_by('-created_at')
+    return render(request, 'custom_admin/withdrawals.html', {'withdrawals': withdrawals})
+
+
+@user_passes_test(is_admin)
+def admin_update_withdrawal(request, withdrawal_id):
+    """Update withdrawal status"""
+    if request.method == 'POST':
+        withdrawal = get_object_or_404(Withdrawal, id=withdrawal_id)
+        action = request.POST.get('action')
+        
+        if action == 'approve':
+            withdrawal.status = 'completed'
+            withdrawal.save()
+            messages.success(request, f'Withdrawal #{withdrawal_id} approved successfully!')
+        elif action == 'reject':
+            withdrawal.status = 'failed'
+            withdrawal.save()
+            messages.warning(request, f'Withdrawal #{withdrawal_id} rejected.')
+    
+    return redirect('admin_withdrawals')
+
+
+@user_passes_test(is_admin)
+def admin_investments_view(request):
+    """List all investments"""
+    investments = UserInvestment.objects.all().order_by('-start_date')
+    return render(request, 'custom_admin/investments.html', {'investments': investments})
+
+
+@user_passes_test(is_admin)
+def admin_credit_cards_view(request):
+    """List all credit card requests"""
+    requests = CreditCardRequest.objects.all().order_by('-created_at')
+    return render(request, 'custom_admin/credit_cards.html', {'requests': requests})
+
+
+@user_passes_test(is_admin)
+def admin_update_credit_card(request, request_id):
+    """Update credit card request status"""
+    if request.method == 'POST':
+        card_request = get_object_or_404(CreditCardRequest, id=request_id)
+        action = request.POST.get('action')
+        
+        if action == 'approve':
+            card_request.status = 'approved'
+            card_request.save()  # This will auto-generate card details
+            messages.success(request, f'Credit card request #{request_id} approved! Card details generated.')
+        elif action == 'reject':
+            card_request.status = 'rejected'
+            card_request.save()
+            messages.warning(request, f'Credit card request #{request_id} rejected.')
+        elif action == 'ship':
+            card_request.status = 'shipped'
+            card_request.save()
+            messages.success(request, f'Credit card #{request_id} marked as shipped.')
+    
+    return redirect('admin_credit_cards')
+
+
+@user_passes_test(is_admin)
+def admin_medbed_view(request):
+    """List all medbed requests"""
+    requests = MedbedRequest.objects.all().order_by('-created_at')
+    return render(request, 'custom_admin/medbed.html', {'requests': requests})
+
+
+@user_passes_test(is_admin)
+def admin_update_medbed(request, request_id):
+    """Update medbed request status"""
+    if request.method == 'POST':
+        medbed_request = get_object_or_404(MedbedRequest, id=request_id)
+        action = request.POST.get('action')
+        
+        if action == 'confirm':
+            medbed_request.status = 'confirmed'
+            medbed_request.save()
+            messages.success(request, f'Medbed request #{request_id} confirmed!')
+        elif action == 'complete':
+            medbed_request.status = 'completed'
+            medbed_request.save()
+            messages.success(request, f'Medbed request #{request_id} marked as completed.')
+        elif action == 'cancel':
+            medbed_request.status = 'cancelled'
+            medbed_request.save()
+            messages.warning(request, f'Medbed request #{request_id} cancelled.')
+    
+    return redirect('admin_medbed')
+
+
+@user_passes_test(is_admin)
+def admin_kyc_view(request):
+    """List all KYC submissions"""
+    kyc_submissions = KYCVerification.objects.all().order_by('-submitted_at')
+    return render(request, 'custom_admin/kyc.html', {'kyc_submissions': kyc_submissions})
+
+
+@user_passes_test(is_admin)
+def admin_update_kyc(request, kyc_id):
+    """Update KYC status"""
+    if request.method == 'POST':
+        kyc = get_object_or_404(KYCVerification, id=kyc_id)
+        action = request.POST.get('action')
+        notes = request.POST.get('notes', '')
+        
+        if action == 'verify':
+            kyc.status = 'verified'
+            kyc.review_notes = notes
+            kyc.save()
+            messages.success(request, f'KYC #{kyc_id} verified successfully!')
+        elif action == 'reject':
+            kyc.status = 'rejected'
+            kyc.review_notes = notes
+            kyc.save()
+            messages.warning(request, f'KYC #{kyc_id} rejected.')
+    
+    return redirect('admin_kyc')
+
+# ==========================================
+# PRIORITY ADMIN MANAGEMENT VIEWS
+# ==========================================
+
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import User
+from django.contrib.auth import login
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+from decimal import Decimal
+from .models import (
+    UserCryptoHolding, TotalBalance, Deposit, Withdrawal, UserInvestment, 
+    CreditCardRequest, MedbedRequest, KYCVerification, Crytocurrency,
+    BalanceAdjustment, UserActivityLog, AdminNotification
+)
+
+def is_admin(user):
+    """Check if user is an admin"""
+    return user.is_authenticated and (user.is_staff or user.is_superuser)
+
+
+# ==========================================
+# USER BALANCE MANAGEMENT
+# ==========================================
+
+@user_passes_test(is_admin)
+def admin_edit_user_balance(request, user_id):
+    """Edit user's cryptocurrency balances"""
+    user = get_object_or_404(User, id=user_id)
+    holdings = UserCryptoHolding.objects.filter(user=user)
+    cryptocurrencies = Crytocurrency.objects.all()
+    
+    if request.method == 'POST':
+        crypto_id = request.POST.get('cryptocurrency')
+        amount = request.POST.get('amount')
+        action = request.POST.get('action')  # add or subtract
+        reason = request.POST.get('reason')
+        
+        try:
+            crypto = Crytocurrency.objects.get(id=crypto_id)
+            amount_decimal = Decimal(amount)
+            
+            # Get or create holding
+            holding, created = UserCryptoHolding.objects.get_or_create(
+                user=user,
+                cryptocurrency=crypto,
+                defaults={'amount': 0, 'amount_in_usd': 0}
+            )
+            
+            # Calculate USD value
+            usd_value = amount_decimal * crypto.coin_price
+            
+            if action == 'add':
+                holding.amount += amount_decimal
+                holding.amount_in_usd += usd_value
+                adjustment_type = 'add'
+            else:  # subtract
+                holding.amount -= amount_decimal
+                holding.amount_in_usd -= usd_value
+                adjustment_type = 'subtract'
+            
+            holding.save()
+            
+            # Update total balance
+            TotalBalance.update_user_balance(user)
+            
+            # Create audit trail
+            BalanceAdjustment.objects.create(
+                user=user,
+                admin=request.user,
+                amount=amount_decimal,
+                cryptocurrency=crypto,
+                adjustment_type=adjustment_type,
+                reason=reason
+            )
+            
+            # Log activity
+            UserActivityLog.objects.create(
+                user=user,
+                action=f"Balance {action}ed by admin",
+                details=f"{amount} {crypto.symbol} - {reason}"
+            )
+            
+            messages.success(request, f'Successfully {action}ed {amount} {crypto.symbol} to {user.username}\'s balance')
+            return redirect('admin_user_detail', user_id=user_id)
+            
+        except Exception as e:
+            messages.error(request, f'Error updating balance: {str(e)}')
+    
+    context = {
+        'user_obj': user,
+        'holdings': holdings,
+        'cryptocurrencies': cryptocurrencies,
+    }
+    return render(request, 'custom_admin/edit_user_balance.html', context)
+
+
+# ==========================================
+# ACCOUNT CONTROLS
+# ==========================================
+
+@user_passes_test(is_admin)
+def admin_toggle_user_status(request, user_id):
+    """Activate or suspend user account"""
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        user.is_active = not user.is_active
+        user.save()
+        
+        status = "activated" if user.is_active else "suspended"
+        UserActivityLog.objects.create(
+            user=user,
+            action=f"Account {status} by admin",
+            details=f"Admin: {request.user.username}"
+        )
+        
+        messages.success(request, f'User account {status} successfully')
+    
+    return redirect('admin_user_detail', user_id=user_id)
+
+
+@user_passes_test(is_admin)
+def admin_reset_user_password(request, user_id):
+    """Reset user password"""
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        new_password = request.POST.get('new_password')
+        
+        if new_password:
+            user.set_password(new_password)
+            user.save()
+            
+            UserActivityLog.objects.create(
+                user=user,
+                action="Password reset by admin",
+                details=f"Admin: {request.user.username}"
+            )
+            
+            # Send email notification
+            try:
+                send_mail(
+                    'Password Reset by Administrator',
+                    f'''Hello {user.first_name},
+
+Your password has been reset by an administrator.
+Your new password is: {new_password}
+
+Please login and change your password immediately for security.
+
+Best regards,
+QFS Ledger Pro Team''',
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
+            except:
+                pass
+            
+            messages.success(request, f'Password reset successfully for {user.username}')
+        else:
+            messages.error(request, 'Password cannot be empty')
+    
+    return redirect('admin_user_detail', user_id=user_id)
+
+
+@user_passes_test(is_admin)
+def admin_impersonate_user(request, user_id):
+    """Login as a specific user (impersonation)"""
+    user = get_object_or_404(User, id=user_id)
+    
+    # Store the admin user ID in session before impersonating
+    request.session['impersonating_admin_id'] = request.user.id
+    request.session['is_impersonating'] = True
+    
+    # Log the impersonation
+    UserActivityLog.objects.create(
+        user=user,
+        action="Account accessed by admin (impersonation)",
+        details=f"Admin: {request.user.username}"
+    )
+    
+    # Login as the user
+    login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+    
+    messages.warning(request, f'You are now impersonating {user.username}. Click "Stop Impersonation" to return to admin.')
+    return redirect('dashboard')
+
+
+@user_passes_test(is_admin)
+def admin_stop_impersonation(request):
+    """Stop impersonating and return to admin account"""
+    if request.session.get('is_impersonating'):
+        admin_id = request.session.get('impersonating_admin_id')
+        if admin_id:
+            admin_user = User.objects.get(id=admin_id)
+            login(request, admin_user, backend='django.contrib.auth.backends.ModelBackend')
+            
+            del request.session['impersonating_admin_id']
+            del request.session['is_impersonating']
+            
+            messages.success(request, 'Impersonation ended. You are back to your admin account.')
+            return redirect('admin_dashboard')
+    
+    return redirect('admin_dashboard')
+
+
+# ==========================================
+# SEND EMAIL TO USER
+# ==========================================
+
+@user_passes_test(is_admin)
+def admin_send_email_to_user(request, user_id):
+    """Send email to a specific user"""
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        subject = request.POST.get('subject')
+        message = request.POST.get('message')
+        
+        if subject and message:
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [user.email],
+                    fail_silently=False,
+                )
+                
+                # Create notification record
+                AdminNotification.objects.create(
+                    user=user,
+                    title=subject,
+                    message=message,
+                    sent_by=request.user
+                )
+                
+                UserActivityLog.objects.create(
+                    user=user,
+                    action="Email sent by admin",
+                    details=f"Subject: {subject}"
+                )
+                
+                messages.success(request, f'Email sent successfully to {user.email}')
+            except Exception as e:
+                messages.error(request, f'Error sending email: {str(e)}')
+        else:
+            messages.error(request, 'Subject and message are required')
+    
+    return redirect('admin_user_detail', user_id=user_id)
+
+
+# ==========================================
+# TRANSACTION MANAGEMENT
+# ==========================================
+
+@user_passes_test(is_admin)
+def admin_edit_deposit(request, deposit_id):
+    """Edit deposit details"""
+    deposit = get_object_or_404(Deposit, id=deposit_id)
+    
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        status = request.POST.get('status')
+        
+        if amount:
+            deposit.amount_in_usd = Decimal(amount)
+        if status:
+            deposit.status = status
+        
+        deposit.save()
+        
+        UserActivityLog.objects.create(
+            user=deposit.user,
+            action="Deposit edited by admin",
+            details=f"Deposit ID: {deposit_id}"
+        )
+        
+        messages.success(request, 'Deposit updated successfully')
+        return redirect('admin_deposits')
+    
+    context = {'deposit': deposit}
+    return render(request, 'custom_admin/edit_deposit.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_edit_withdrawal(request, withdrawal_id):
+    """Edit withdrawal details"""
+    withdrawal = get_object_or_404(Withdrawal, id=withdrawal_id)
+    
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        status = request.POST.get('status')
+        
+        if amount:
+            withdrawal.amount_in_usd = Decimal(amount)
+        if status:
+            withdrawal.status = status
+        
+        withdrawal.save()
+        
+        UserActivityLog.objects.create(
+            user=withdrawal.user,
+            action="Withdrawal edited by admin",
+            details=f"Withdrawal ID: {withdrawal_id}"
+        )
+        
+        messages.success(request, 'Withdrawal updated successfully')
+        return redirect('admin_withdrawals')
+    
+    context = {'withdrawal': withdrawal}
+    return render(request, 'custom_admin/edit_withdrawal.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_edit_investment(request, investment_id):
+    """Edit investment details"""
+    investment = get_object_or_404(UserInvestment, id=investment_id)
+    
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        status = request.POST.get('status')
+        
+        if amount:
+            investment.amount_in_usd = Decimal(amount)
+        if status:
+            investment.status = status
+        
+        investment.save()
+        
+        UserActivityLog.objects.create(
+            user=investment.user,
+            action="Investment edited by admin",
+            details=f"Investment ID: {investment_id}"
+        )
+        
+        messages.success(request, 'Investment updated successfully')
+        return redirect('admin_investments')
+    
+    context = {'investment': investment}
+    return render(request, 'custom_admin/edit_investment.html', context)
+
+# ==========================================
+# CREDIT CARD ADMIN MANAGEMENT
+# ==========================================
+
+@user_passes_test(is_admin)
+def admin_card_detail_view(request, request_id):
+    """Detailed view and management for credit card"""
+    card_request = get_object_or_404(CreditCardRequest, id=request_id)
+    
+    context = {
+        'card_request': card_request,
+    }
+    return render(request, 'custom_admin/card_detail.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_ban_card(request, request_id):
+    """Ban a credit card"""
+    if request.method == 'POST':
+        card_request = get_object_or_404(CreditCardRequest, id=request_id)
+        reason = request.POST.get('reason', 'Banned by administrator')
+        
+        card_request.is_banned = True
+        card_request.ban_reason = reason
+        card_request.status = 'banned'
+        card_request.save()
+        
+        UserActivityLog.objects.create(
+            user=card_request.user,
+            action="Credit card banned by admin",
+            details=f"Card: {card_request.card_number[-4:] if card_request.card_number else 'N/A'} - Reason: {reason}"
+        )
+        
+        # Send email notification
+        try:
+            send_mail(
+                'Credit Card Banned',
+                f'''Hello {card_request.user.first_name},
+
+Your credit card ending in {card_request.card_number[-4:] if card_request.card_number else 'N/A'} has been banned.
+
+Reason: {reason}
+
+Please contact support if you have any questions.
+
+Best regards,
+QFS Ledger Pro Team''',
+                settings.DEFAULT_FROM_EMAIL,
+                [card_request.user.email],
+                fail_silently=True,
+            )
+        except:
+            pass
+        
+        messages.success(request, f'Card banned successfully')
+    
+    return redirect('admin_credit_cards')
+
+
+@user_passes_test(is_admin)
+def admin_unban_card(request, request_id):
+    """Unban a credit card"""
+    if request.method == 'POST':
+        card_request = get_object_or_404(CreditCardRequest, id=request_id)
+        
+        card_request.is_banned = False
+        card_request.ban_reason = None
+        card_request.status = 'active'
+        card_request.save()
+        
+        UserActivityLog.objects.create(
+            user=card_request.user,
+            action="Credit card unbanned by admin",
+            details=f"Card: {card_request.card_number[-4:] if card_request.card_number else 'N/A'}"
+        )
+        
+        messages.success(request, f'Card unbanned successfully')
+    
+    return redirect('admin_credit_cards')
+
+
+@user_passes_test(is_admin)
+def admin_update_card_details(request, request_id):
+    """Update card number, CVV, expiry date"""
+    card_request = get_object_or_404(CreditCardRequest, id=request_id)
+    
+    if request.method == 'POST':
+        card_number = request.POST.get('card_number')
+        cvv = request.POST.get('cvv')
+        expiry_date = request.POST.get('expiry_date')
+        
+        if card_number:
+            card_request.card_number = card_number
+        if cvv:
+            card_request.cvv = cvv
+        if expiry_date:
+            card_request.expiry_date = expiry_date
+        
+        card_request.save()
+        
+        UserActivityLog.objects.create(
+            user=card_request.user,
+            action="Credit card details updated by admin",
+            details=f"Card ID: {request_id}"
+        )
+        
+        messages.success(request, 'Card details updated successfully')
+        return redirect('admin_card_detail', request_id=request_id)
+    
+    context = {'card_request': card_request}
+    return render(request, 'custom_admin/update_card_details.html', context)
+
+
+@user_passes_test(is_admin)
+def admin_regulate_card_limits(request, request_id):
+    """Update card spending limits"""
+    card_request = get_object_or_404(CreditCardRequest, id=request_id)
+    
+    if request.method == 'POST':
+        daily_limit = request.POST.get('daily_limit')
+        monthly_limit = request.POST.get('monthly_limit')
+        
+        if daily_limit:
+            card_request.daily_limit = Decimal(daily_limit)
+        if monthly_limit:
+            card_request.monthly_limit = Decimal(monthly_limit)
+        
+        card_request.save()
+        
+        UserActivityLog.objects.create(
+            user=card_request.user,
+            action="Credit card limits updated by admin",
+            details=f"Daily: ${daily_limit}, Monthly: ${monthly_limit}"
+        )
+        
+        messages.success(request, 'Card limits updated successfully')
+        return redirect('admin_card_detail', request_id=request_id)
+    
+    context = {'card_request': card_request}
+    return render(request, 'custom_admin/regulate_card_limits.html', context)

@@ -1,0 +1,56 @@
+{% extends 'custom_admin/admin_base.html' %}
+
+{% block title %}Investment Management{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold">Investment Management</h1>
+    <p class="text-gray-600">View all user investments</p>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Plan</th>
+                        <th>Amount (USD)</th>
+                        <th>Daily Profit</th>
+                        <th>Total Profit</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for investment in investments %}
+                    <tr>
+                        <td>{{ investment.id }}</td>
+                        <td>{{ investment.user.username }}</td>
+                        <td>{{ investment.plan.name }}</td>
+                        <td>${{ investment.amount_in_usd }}</td>
+                        <td>${{ investment.daily_profit }}</td>
+                        <td>${{ investment.total_profit_earned }}</td>
+                        <td>
+                            <span
+                                class="badge badge-{% if investment.status == 'active' %}success{% elif investment.status == 'completed' %}info{% else %}error{% endif %}">
+                                {{ investment.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ investment.start_date|date:"Y-m-d" }}</td>
+                        <td>{{ investment.end_date|date:"Y-m-d" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center text-gray-500">No investments found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

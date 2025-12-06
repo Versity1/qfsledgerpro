@@ -1,0 +1,123 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Dashboard{% endblock %} - QFS Ledger Pro Admin</title>
+
+    <!-- Tailwind CSS & DaisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .admin-sidebar-link.active {
+            background-color: hsl(var(--p));
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+
+    <div class="drawer lg:drawer-open">
+        <input id="admin-drawer" type="checkbox" class="drawer-toggle" />
+
+        <div class="drawer-content flex flex-col">
+            <!-- Navbar -->
+            <div class="w-full navbar bg-base-100 shadow-sm lg:hidden">
+                <div class="flex-none">
+                    <label for="admin-drawer" class="btn btn-square btn-ghost">
+                        <i class="fas fa-bars text-xl"></i>
+                    </label>
+                </div>
+                <div class="flex-1 px-2 mx-2 text-xl font-bold">QFS Admin</div>
+            </div>
+
+            <!-- Page Content -->
+            <main class="p-6">
+                {% if messages %}
+                <div class="toast toast-top toast-end z-50">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="drawer-side z-40">
+            <label for="admin-drawer" class="drawer-overlay"></label>
+            <ul class="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+                <!-- Sidebar Header -->
+                <li class="mb-4">
+                    <div class="flex items-center gap-3 px-2">
+                        <i class="fas fa-shield-alt text-2xl text-primary"></i>
+                        <div>
+                            <h2 class="text-xl font-bold">QFS Admin</h2>
+                            <p class="text-xs opacity-70">Management Portal</p>
+                        </div>
+                    </div>
+                </li>
+
+                <div class="divider my-0"></div>
+
+                <!-- Navigation Links -->
+                <li><a href="{% url 'admin_dashboard' %}"
+                        class="{% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"><i
+                            class="fas fa-chart-line w-6"></i> Dashboard</a></li>
+
+                <li class="menu-title mt-4">Management</li>
+                <li><a href="{% url 'admin_users' %}"
+                        class="{% if request.resolver_match.url_name == 'admin_users' or request.resolver_match.url_name == 'admin_user_detail' %}active{% endif %}"><i
+                            class="fas fa-users w-6"></i> Users</a></li>
+                <li><a href="{% url 'admin_deposits' %}"
+                        class="{% if request.resolver_match.url_name == 'admin_deposits' %}active{% endif %}"><i
+                            class="fas fa-money-bill-wave w-6"></i> Deposits</a></li>
+                <li><a href="{% url 'admin_withdrawals' %}"
+                        class="{% if request.resolver_match.url_name == 'admin_withdrawals' %}active{% endif %}"><i
+                            class="fas fa-hand-holding-dollar w-6"></i> Withdrawals</a></li>
+                <li><a href="{% url 'admin_investments' %}"
+                        class="{% if request.resolver_match.url_name == 'admin_investments' %}active{% endif %}"><i
+                            class="fas fa-piggy-bank w-6"></i> Investments</a></li>
+
+                <li class="menu-title mt-4">Requests</li>
+                <li><a href="{% url 'admin_credit_cards' %}"
+                        class="{% if request.resolver_match.url_name == 'admin_credit_cards' %}active{% endif %}"><i
+                            class="fas fa-credit-card w-6"></i> Credit Cards</a></li>
+                <li><a href="{% url 'admin_medbed' %}"
+                        class="{% if request.resolver_match.url_name == 'admin_medbed' %}active{% endif %}"><i
+                            class="fas fa-bed-pulse w-6"></i> Medbed</a></li>
+                <li><a href="{% url 'admin_kyc' %}"
+                        class="{% if request.resolver_match.url_name == 'admin_kyc' %}active{% endif %}"><i
+                            class="fas fa-id-card w-6"></i> KYC</a></li>
+
+                <div class="divider"></div>
+
+                <li><a href="{% url 'dashboard' %}" class="text-primary"><i class="fas fa-arrow-left w-6"></i> Back to
+                        Site</a></li>
+                <li><a href="{% url 'logout' %}" class="text-error"><i class="fas fa-sign-out-alt w-6"></i> Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+</body>
+
+</html>

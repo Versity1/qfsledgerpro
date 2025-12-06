@@ -1,0 +1,306 @@
+{% extends 'custom_admin/admin_base.html' %}
+
+{% block title %}Credit Card Details - {{ card_request.user.username }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold">Credit Card Details</h1>
+            <p class="text-gray-600">Manage credit card for {{ card_request.user.username }}</p>
+        </div>
+        <a href="{% url 'admin_credit_cards' %}" class="btn btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to List
+        </a>
+    </div>
+</div>
+
+<!-- Card Status and Quick Actions -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Card Status</h2>
+            <div class="space-y-4">
+                <div>
+                    <span class="text-gray-600">Status:</span>
+                    <span
+                        class="badge badge-{% if card_request.status == 'approved' or card_request.status == 'active' %}success{% elif card_request.status == 'pending' %}warning{% elif card_request.status == 'banned' %}error{% else %}info{% endif %} ml-2">
+                        {{ card_request.get_status_display }}
+                    </span>
+                </div>
+                {% if card_request.is_banned %}
+                <div class="alert alert-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <h3 class="font-bold">Card is Banned</h3>
+                        <div class="text-sm">{{ card_request.ban_reason }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Quick Actions</h2>
+            <div class="space-y-2">
+                {% if card_request.is_banned %}
+                <form method="post" action="{% url 'admin_unban_card' card_request.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-block">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Unban Card
+                    </button>
+                </form>
+                {% else %}
+                <button onclick="banModal.showModal()" class="btn btn-error btn-block">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                    </svg>
+                    Ban Card
+                </button>
+                {% endif %}
+
+                <button onclick="updateDetailsModal.showModal()" class="btn btn-primary btn-block">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    Update Card Details
+                </button>
+
+                <button onclick="limitsModal.showModal()" class="btn btn-outline btn-block">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Regulate Limits
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card Information -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- User Information -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">User Information</h2>
+            <div class="space-y-3">
+                <div>
+                    <span class="font-semibold">User:</span>
+                    <a href="{% url 'admin_user_detail' card_request.user.id %}" class="link link-primary ml-2">{{
+                        card_request.user.username }}</a>
+                </div>
+                <div>
+                    <span class="font-semibold">Full Name:</span>
+                    <span class="ml-2">{{ card_request.full_name }}</span>
+                </div>
+                <div>
+                    <span class="font-semibold">Phone:</span>
+                    <span class="ml-2">{{ card_request.phone_number }}</span>
+                </div>
+                <div>
+                    <span class="font-semibold">Email:</span>
+                    <span class="ml-2">{{ card_request.user.email }}</span>
+                </div>
+                <div>
+                    <span class="font-semibold">Address:</span>
+                    <p class="ml-2 text-sm">{{ card_request.address }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card Details -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Card Details</h2>
+            <div class="space-y-3">
+                <div>
+                    <span class="font-semibold">Card Type:</span>
+                    <span class="ml-2">{{ card_request.card_type.name }}</span>
+                </div>
+                <div>
+                    <span class="font-semibold">Fee:</span>
+                    <span class="ml-2">${{ card_request.card_type.fee }}</span>
+                </div>
+                {% if card_request.card_number %}
+                <div>
+                    <span class="font-semibold">Card Number:</span>
+                    <span class="ml-2 font-mono">{{ card_request.card_number }}</span>
+                </div>
+                <div>
+                    <span class="font-semibold">CVV:</span>
+                    <span class="ml-2 font-mono">{{ card_request.cvv }}</span>
+                </div>
+                <div>
+                    <span class="font-semibold">Expiry:</span>
+                    <span class="ml-2 font-mono">{{ card_request.expiry_date }}</span>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Card details will be generated when approved</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Spending Limits -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Spending Limits</h2>
+            <div class="space-y-3">
+                <div>
+                    <span class="font-semibold">Daily Limit:</span>
+                    <span class="ml-2 text-lg">${{ card_request.daily_limit }}</span>
+                </div>
+                <div>
+                    <span class="font-semibold">Monthly Limit:</span>
+                    <span class="ml-2 text-lg">${{ card_request.monthly_limit }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Timeline</h2>
+            <div class="space-y-3">
+                <div>
+                    <span class="font-semibold">Created:</span>
+                    <span class="ml-2">{{ card_request.created_at|date:"Y-m-d H:i" }}</span>
+                </div>
+                <div>
+                    <span class="font-semibold">Last Updated:</span>
+                    <span class="ml-2">{{ card_request.updated_at|date:"Y-m-d H:i" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ban Modal -->
+<dialog id="banModal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Ban Credit Card</h3>
+        <form method="post" action="{% url 'admin_ban_card' card_request.id %}">
+            {% csrf_token %}
+            <div class="form-control w-full mt-4">
+                <label class="label">
+                    <span class="label-text">Reason for Banning</span>
+                </label>
+                <textarea name="reason" class="textarea textarea-bordered" placeholder="Enter reason..." rows="4"
+                    required></textarea>
+            </div>
+            <div class="modal-action">
+                <button type="button" onclick="banModal.close()" class="btn">Cancel</button>
+                <button type="submit" class="btn btn-error">Ban Card</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Update Details Modal -->
+<dialog id="updateDetailsModal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Update Card Details</h3>
+        <form method="post" action="{% url 'admin_update_card_details' card_request.id %}">
+            {% csrf_token %}
+            <div class="space-y-4 mt-4">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Card Number</span>
+                    </label>
+                    <input type="text" name="card_number" value="{{ card_request.card_number }}"
+                        class="input input-bordered font-mono" placeholder="4000 0000 0000 0000" pattern="[0-9 ]+"
+                        maxlength="19">
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">CVV</span>
+                    </label>
+                    <input type="text" name="cvv" value="{{ card_request.cvv }}" class="input input-bordered font-mono"
+                        placeholder="123" pattern="[0-9]{3}" maxlength="3">
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Expiry Date (MM/YY)</span>
+                    </label>
+                    <input type="text" name="expiry_date" value="{{ card_request.expiry_date }}"
+                        class="input input-bordered font-mono" placeholder="12/25" pattern="[0-9]{2}/[0-9]{2}"
+                        maxlength="5">
+                </div>
+            </div>
+            <div class="modal-action">
+                <button type="button" onclick="updateDetailsModal.close()" class="btn">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Limits Modal -->
+<dialog id="limitsModal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg">Regulate Card Limits</h3>
+        <form method="post" action="{% url 'admin_regulate_card_limits' card_request.id %}">
+            {% csrf_token %}
+            <div class="space-y-4 mt-4">
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Daily Limit ($)</span>
+                    </label>
+                    <input type="number" name="daily_limit" value="{{ card_request.daily_limit }}"
+                        class="input input-bordered" step="0.01" min="0" required>
+                </div>
+                <div class="form-control w-full">
+                    <label class="label">
+                        <span class="label-text">Monthly Limit ($)</span>
+                    </label>
+                    <input type="number" name="monthly_limit" value="{{ card_request.monthly_limit }}"
+                        class="input input-bordered" step="0.01" min="0" required>
+                </div>
+            </div>
+            <div class="modal-action">
+                <button type="button" onclick="limitsModal.close()" class="btn">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update Limits</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+{% endblock %}

@@ -420,34 +420,45 @@ class CreditCardType(models.Model):
     def __str__(self):
         return f"{self.name} (${self.fee})"
 
+
 class CreditCardRequest(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('approved', 'Approved'),
-        ('shipped', 'Shipped'),
         ('rejected', 'Rejected'),
+        ('shipped', 'Shipped'),
+        ('active', 'Active'),
+        ('banned', 'Banned'),
+        ('suspended', 'Suspended'),
     ]
-
+    
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     card_type = models.ForeignKey(CreditCardType, on_delete=models.CASCADE)
-    shipping_address = models.TextField()
+    full_name = models.CharField(max_length=200)
     phone_number = models.CharField(max_length=20)
+    address = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
-    # Issued Card Details (Filled by Admin)
-    card_number = models.CharField(max_length=19, blank=True, null=True, help_text="Format: XXXX XXXX XXXX XXXX")
-    cvv = models.CharField(max_length=4, blank=True, null=True)
-    expiry_date = models.CharField(max_length=5, blank=True, null=True, help_text="Format: MM/YY")
+    # Card details (generated when approved)
+    card_number = models.CharField(max_length=19, blank=True, null=True)
+    cvv = models.CharField(max_length=3, blank=True, null=True)
+    expiry_date = models.CharField(max_length=7, blank=True, null=True)  # Format: MM/YY
+    
+    # Card regulation fields
+    is_banned = models.BooleanField(default=False)
+    ban_reason = models.TextField(blank=True, null=True)
+    daily_limit = models.DecimalField(max_digits=10, decimal_places=2, default=10000.00)
+    monthly_limit = models.DecimalField(max_digits=10, decimal_places=2, default=100000.00)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
     def __str__(self):
-        return f"{self.card_type.name} Request - {self.user.username}"
-
+        return f"{self.card_type.name} - {self.user.username}"
+    
     def save(self, *args, **kwargs):
         # Automatically generate card details if approved and not set
-        if self.status in ['approved', 'shipped'] and not self.card_number:
+        if self.status in ['approved', 'shipped', 'active'] and not self.card_number:
             # Generate random 16 digit card number
             self.card_number = f"{random.randint(4000, 4999)} {random.randint(1000, 9999)} {random.randint(1000, 9999)} {random.randint(1000, 9999)}"
             
@@ -457,5 +468,177 @@ class CreditCardRequest(models.Model):
             # Set expiry date to 3 years from now
             future_date = timezone.now() + timezone.timedelta(days=365*3)
             self.expiry_date = future_date.strftime('%m/%y')
+        
+        # Auto-update status based on ban
+        if self.is_banned:
+            self.status = 'banned'
             
         super().save(*args, **kwargs)
+
+
+# ==========================================
+# ADMIN ENHANCEMENT MODELS
+# ==========================================
+
+class UserActivityLog(models.Model):
+    """Track user activity for admin monitoring"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity_logs')
+    action = models.CharField(max_length=200)
+    details = models.TextField(blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        verbose_name = "User Activity Log"
+        verbose_name_plural = "User Activity Logs"
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.action} at {self.timestamp}"
+
+
+class BalanceAdjustment(models.Model):
+    """Track manual balance adjustments by admins"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='balance_adjustments')
+    admin = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='balance_adjustments_made')
+    amount = models.DecimalField(max_digits=20, decimal_places=2)
+    cryptocurrency = models.ForeignKey(Crytocurrency, on_delete=models.CASCADE)
+    adjustment_type = models.CharField(max_length=10, choices=[('add', 'Add'), ('subtract', 'Subtract')])
+    reason = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Balance Adjustment"
+        verbose_name_plural = "Balance Adjustments"
+    
+    def __str__(self):
+        return f"{self.adjustment_type.title()} {self.amount} {self.cryptocurrency.symbol} for {self.user.username}"
+
+
+class AdminNotification(models.Model):
+    """Notifications sent by admin to users"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='admin_notifications')
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='notifications_sent')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Admin Notification"
+        verbose_name_plural = "Admin Notifications"
+    
+    def __str__(self):
+        return f"{self.title} to {self.user.username}"
+
+
+class SystemAnnouncement(models.Model):
+    """System-wide announcements"""
+    ANNOUNCEMENT_TYPES = [
+        ('info', 'Information'),
+        ('warning', 'Warning'),
+        ('success', 'Success'),
+        ('error', 'Error'),
+    ]
+    
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    announcement_type = models.CharField(max_length=20, choices=ANNOUNCEMENT_TYPES, default='info')
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "System Announcement"
+        verbose_name_plural = "System Announcements"
+    
+    def __str__(self):
+        return self.title
+    
+    def is_expired(self):
+        if self.expires_at:
+            return timezone.now() > self.expires_at
+        return False
+
+
+class BulkEmail(models.Model):
+    """Track bulk emails sent by admins"""
+    subject = models.CharField(max_length=200)
+    message = models.TextField()
+    recipients_filter = models.CharField(max_length=50, choices=[
+        ('all', 'All Users'),
+        ('active', 'Active Users'),
+        ('kyc_verified', 'KYC Verified Users'),
+        ('with_balance', 'Users with Balance'),
+        ('investors', 'Active Investors'),
+    ])
+    sent_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    recipient_count = models.IntegerField(default=0)
+    
+    class Meta:
+        ordering = ['-sent_at']
+        verbose_name = "Bulk Email"
+        verbose_name_plural = "Bulk Emails"
+    
+    def __str__(self):
+        return f"{self.subject} ({self.recipient_count} recipients)"
+
+
+class SystemSetting(models.Model):
+    """Configurable system settings"""
+    key = models.CharField(max_length=100, unique=True)
+    value = models.TextField()
+    description = models.TextField()
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "System Setting"
+        verbose_name_plural = "System Settings"
+    
+    def __str__(self):
+        return self.key
+
+
+class EmailTemplate(models.Model):
+    """Editable email templates"""
+    name = models.CharField(max_length=100, unique=True)
+    subject = models.CharField(max_length=200)
+    body = models.TextField()
+    variables = models.TextField(help_text="Comma-separated list of available variables")
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Email Template"
+        verbose_name_plural = "Email Templates"
+    
+    def __str__(self):
+        return self.name
+
+
+class SystemLog(models.Model):
+    """System activity logs"""
+    LOG_LEVELS = [
+        ('INFO', 'Information'),
+        ('WARNING', 'Warning'),
+        ('ERROR', 'Error'),
+        ('CRITICAL', 'Critical'),
+    ]
+    
+    level = models.CharField(max_length=20, choices=LOG_LEVELS)
+    message = models.TextField()
+    details = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "System Log"
+        verbose_name_plural = "System Logs"
+    
+    def __str__(self):
+        return f"[{self.level}] {self.message[:50]}"

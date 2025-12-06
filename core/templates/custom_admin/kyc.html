@@ -1,0 +1,96 @@
+{% extends 'custom_admin/admin_base.html' %}
+
+{% block title %}KYC Management{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold">KYC Verification Management</h1>
+    <p class="text-gray-600">Review and verify KYC submissions</p>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Document Type</th>
+                        <th>Status</th>
+                        <th>Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kyc in kyc_submissions %}
+                    <tr>
+                        <td>{{ kyc.id }}</td>
+                        <td>{{ kyc.user.username }}</td>
+                        <td>{{ kyc.get_document_type_display }}</td>
+                        <td>
+                            <span
+                                class="badge badge-{% if kyc.status == 'verified' %}success{% elif kyc.status == 'pending' %}warning{% elif kyc.status == 'rejected' %}error{% else %}ghost{% endif %}">
+                                {{ kyc.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ kyc.submitted_at|date:"Y-m-d H:i"|default:"-" }}</td>
+                        <td>
+                            {% if kyc.status == 'pending' %}
+                            <button
+                                onclick="openKycModal({{ kyc.id }}, '{{ kyc.user.username }}', '{{ kyc.document_image.url }}')"
+                                class="btn btn-xs btn-primary">Review</button>
+                            {% else %}
+                            <span class="text-gray-400">Reviewed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-gray-500">No KYC submissions found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- KYC Review Modal -->
+<dialog id="kyc_modal" class="modal">
+    <div class="modal-box w-11/12 max-w-2xl">
+        <h3 class="font-bold text-lg">Review KYC Submission</h3>
+        <p class="py-2">User: <span id="modal_username"></span></p>
+
+        <div class="my-4">
+            <img id="modal_document" src="" alt="Document" class="w-full max-h-96 object-contain border rounded">
+        </div>
+
+        <form method="post" id="kyc_form" action="">
+            {% csrf_token %}
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Review Notes</span>
+                </label>
+                <textarea name="notes" class="textarea textarea-bordered"
+                    placeholder="Enter review notes..."></textarea>
+            </div>
+
+            <div class="modal-action">
+                <button type="submit" name="action" value="verify" class="btn btn-success">Verify</button>
+                <button type="submit" name="action" value="reject" class="btn btn-error">Reject</button>
+                <button type="button" onclick="document.getElementById('kyc_modal').close()" class="btn">Cancel</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<script>
+    function openKycModal(kycId, username, documentUrl) {
+        document.getElementById('modal_username').textContent = username;
+        document.getElementById('modal_document').src = documentUrl;
+        document.getElementById('kyc_form').action = `/admin/kyc/${kycId}/update/`;
+        document.getElementById('kyc_modal').showModal();
+    }
+</script>
+{% endblock %}

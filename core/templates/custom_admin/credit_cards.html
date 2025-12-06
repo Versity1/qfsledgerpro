@@ -1,0 +1,74 @@
+{% extends 'custom_admin/admin_base.html' %}
+
+{% block title %}Credit Card Requests{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold">Credit Card Requests</h1>
+    <p class="text-gray-600">Manage credit card applications</p>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Card Type</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                    <tr>
+                        <td>{{ request.id }}</td>
+                        <td>{{ request.user.username }}</td>
+                        <td>{{ request.card_type.name }}</td>
+                        <td>{{ request.phone_number }}</td>
+                        <td>
+                            {% if request.is_banned %}
+                            <span class="badge badge-error">Banned</span>
+                            {% else %}
+                            <span
+                                class="badge badge-{% if request.status == 'approved' or request.status == 'active' %}success{% elif request.status == 'pending' %}warning{% elif request.status == 'shipped' %}info{% else %}error{% endif %}">
+                                {{ request.get_status_display }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ request.created_at|date:"Y-m-d" }}</td>
+                        <td>
+                            <a href="{% url 'admin_card_detail' request.id %}" class="btn btn-xs btn-primary">View
+                                Details</a>
+                            {% if request.status == 'pending' %}
+                            <form method="post" action="{% url 'admin_update_credit_card' request.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="approve"
+                                    class="btn btn-xs btn-success">Approve</button>
+                                <button type="submit" name="action" value="reject"
+                                    class="btn btn-xs btn-error">Reject</button>
+                            </form>
+                            {% elif request.status == 'approved' %}
+                            <form method="post" action="{% url 'admin_update_credit_card' request.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="ship" class="btn btn-xs btn-info">Mark
+                                    Shipped</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-gray-500">No credit card requests found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

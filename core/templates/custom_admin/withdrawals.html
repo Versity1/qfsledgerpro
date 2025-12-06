@@ -1,0 +1,67 @@
+{% extends 'custom_admin/admin_base.html' %}
+
+{% block title %}Withdrawal Management{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold">Withdrawal Management</h1>
+    <p class="text-gray-600">Review and approve withdrawal requests</p>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Cryptocurrency</th>
+                        <th>Amount (USD)</th>
+                        <th>Wallet Address</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for withdrawal in withdrawals %}
+                    <tr>
+                        <td>{{ withdrawal.id }}</td>
+                        <td>{{ withdrawal.user.username }}</td>
+                        <td>{{ withdrawal.cryptocurrency.symbol }}</td>
+                        <td>${{ withdrawal.amount_in_usd }}</td>
+                        <td>{{ withdrawal.user_wallet_address|truncatechars:20 }}</td>
+                        <td>
+                            <span
+                                class="badge badge-{% if withdrawal.status == 'completed' %}success{% elif withdrawal.status == 'pending' %}warning{% else %}error{% endif %}">
+                                {{ withdrawal.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ withdrawal.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            {% if withdrawal.status == 'pending' %}
+                            <form method="post" action="{% url 'admin_update_withdrawal' withdrawal.id %}"
+                                class="inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="approve"
+                                    class="btn btn-xs btn-success">Approve</button>
+                                <button type="submit" name="action" value="reject"
+                                    class="btn btn-xs btn-error">Reject</button>
+                            </form>
+                            {% else %}
+                            <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-gray-500">No withdrawals found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'custom_admin/admin_base.html' %}
+
+{% block title %}Edit User Balance - {{ user_obj.username }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold">Edit Balance: {{ user_obj.username }}</h1>
+    <p class="text-gray-600">Adjust user cryptocurrency balances</p>
+</div>
+
+<!-- Current Holdings -->
+<div class="card bg-base-100 shadow-xl mb-6">
+    <div class="card-body">
+        <h2 class="card-title">Current Holdings</h2>
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>Cryptocurrency</th>
+                        <th>Amount</th>
+                        <th>USD Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for holding in holdings %}
+                    <tr>
+                        <td>{{ holding.cryptocurrency.name }} ({{ holding.cryptocurrency.symbol }})</td>
+                        <td>{{ holding.amount }}</td>
+                        <td>${{ holding.amount_in_usd }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-gray-500">No holdings</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Balance Adjustment Form -->
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <h2 class="card-title">Adjust Balance</h2>
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Cryptocurrency</span>
+                </label>
+                <select name="cryptocurrency" class="select select-bordered w-full" required>
+                    <option value="">Select cryptocurrency</option>
+                    {% for crypto in cryptocurrencies %}
+                    <option value="{{ crypto.id }}">{{ crypto.name }} ({{ crypto.symbol }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Amount</span>
+                </label>
+                <input type="number" name="amount" step="0.00000001" class="input input-bordered" placeholder="0.00"
+                    required>
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Action</span>
+                </label>
+                <select name="action" class="select select-bordered w-full" required>
+                    <option value="add">Add to Balance</option>
+                    <option value="subtract">Subtract from Balance</option>
+                </select>
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Reason (for audit trail)</span>
+                </label>
+                <textarea name="reason" class="textarea textarea-bordered" rows="3"
+                    placeholder="Enter reason for adjustment..." required></textarea>
+            </div>
+
+            <div class="card-actions justify-end">
+                <a href="{% url 'admin_user_detail' user_obj.id %}" class="btn">Cancel</a>
+                <button type="submit" class="btn btn-primary">Apply Adjustment</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

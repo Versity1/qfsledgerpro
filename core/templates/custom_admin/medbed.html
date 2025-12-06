@@ -1,0 +1,72 @@
+{% extends 'custom_admin/admin_base.html' %}
+
+{% block title %}Medbed Requests{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold">Medbed Requests</h1>
+    <p class="text-gray-600">Manage Medbed booking requests</p>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Full Name</th>
+                        <th>Type</th>
+                        <th>Preferred Date</th>
+                        <th>Status</th>
+                        <th>Date Submitted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in requests %}
+                    <tr>
+                        <td>{{ request.id }}</td>
+                        <td>{{ request.user.username }}</td>
+                        <td>{{ request.full_name }}</td>
+                        <td><span class="badge badge-info">{{ request.get_request_type_display }}</span></td>
+                        <td>{{ request.preferred_date|default:"-" }}</td>
+                        <td>
+                            <span
+                                class="badge badge-{% if request.status == 'completed' %}success{% elif request.status == 'confirmed' %}info{% elif request.status == 'pending' %}warning{% else %}error{% endif %}">
+                                {{ request.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ request.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            {% if request.status == 'pending' %}
+                            <form method="post" action="{% url 'admin_update_medbed' request.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="confirm"
+                                    class="btn btn-xs btn-success">Confirm</button>
+                                <button type="submit" name="action" value="cancel"
+                                    class="btn btn-xs btn-error">Cancel</button>
+                            </form>
+                            {% elif request.status == 'confirmed' %}
+                            <form method="post" action="{% url 'admin_update_medbed' request.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="complete"
+                                    class="btn btn-xs btn-info">Complete</button>
+                            </form>
+                            {% else %}
+                            <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-gray-500">No medbed requests found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'custom_admin/admin_base.html' %}
+
+{% block title %}Deposit Management{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold">Deposit Management</h1>
+    <p class="text-gray-600">Review and approve deposit requests</p>
+</div>
+
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Cryptocurrency</th>
+                        <th>Amount (USD)</th>
+                        <th>TX Hash</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for deposit in deposits %}
+                    <tr>
+                        <td>{{ deposit.id }}</td>
+                        <td>{{ deposit.user.username }}</td>
+                        <td>{{ deposit.cryptocurrency.symbol }}</td>
+                        <td>${{ deposit.amount_in_usd }}</td>
+                        <td>{{ deposit.tx_hash|default:"-"|truncatechars:15 }}</td>
+                        <td>
+                            <span
+                                class="badge badge-{% if deposit.status == 'completed' %}success{% elif deposit.status == 'pending' %}warning{% else %}error{% endif %}">
+                                {{ deposit.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ deposit.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            {% if deposit.status == 'pending' %}
+                            <form method="post" action="{% url 'admin_update_deposit' deposit.id %}" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="approve"
+                                    class="btn btn-xs btn-success">Approve</button>
+                                <button type="submit" name="action" value="reject"
+                                    class="btn btn-xs btn-error">Reject</button>
+                            </form>
+                            {% else %}
+                            <span class="text-gray-400">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-gray-500">No deposits found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

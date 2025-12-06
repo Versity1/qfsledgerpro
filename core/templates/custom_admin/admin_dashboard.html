@@ -1,0 +1,261 @@
+{% extends 'custom_admin/admin_base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+    <p class="text-gray-600">Manage system operations and pending requests</p>
+</div>
+
+<!-- Action Required Alerts -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    {% if pending_deposits > 0 %}
+    <div class="alert alert-warning shadow-lg">
+        <div>
+            <i class="fas fa-exclamation-circle text-2xl"></i>
+            <div>
+                <h3 class="font-bold">{{ pending_deposits }} Pending Deposit{{ pending_deposits|pluralize }}</h3>
+                <div class="text-xs">Requires approval</div>
+            </div>
+        </div>
+        <a href="{% url 'admin_deposits' %}" class="btn btn-sm btn-warning">Review</a>
+    </div>
+    {% endif %}
+
+    {% if pending_withdrawals > 0 %}
+    <div class="alert alert-error shadow-lg">
+        <div>
+            <i class="fas fa-exclamation-triangle text-2xl"></i>
+            <div>
+                <h3 class="font-bold">{{ pending_withdrawals }} Pending Withdrawal{{ pending_withdrawals|pluralize }}
+                </h3>
+                <div class="text-xs">Requires approval</div>
+            </div>
+        </div>
+        <a href="{% url 'admin_withdrawals' %}" class="btn btn-sm btn-error">Review</a>
+    </div>
+    {% endif %}
+
+    {% if pending_kyc_count > 0 %}
+    <div class="alert alert-info shadow-lg">
+        <div>
+            <i class="fas fa-id-card text-2xl"></i>
+            <div>
+                <h3 class="font-bold">{{ pending_kyc_count }} Pending KYC</h3>
+                <div class="text-xs">Awaiting verification</div>
+            </div>
+        </div>
+        <a href="{% url 'admin_kyc' %}" class="btn btn-sm btn-info">Review</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Stats -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="stat bg-base-100 shadow rounded-lg">
+        <div class="stat-figure text-primary">
+            <i class="fas fa-users text-3xl"></i>
+        </div>
+        <div class="stat-title">Total Users</div>
+        <div class="stat-value text-primary">{{ total_users }}</div>
+        <div class="stat-desc">+{{ new_users_today }} today</div>
+    </div>
+
+    <div class="stat bg-base-100 shadow rounded-lg">
+        <div class="stat-figure text-secondary">
+            <i class="fas fa-chart-line text-3xl"></i>
+        </div>
+        <div class="stat-title">Active Investments</div>
+        <div class="stat-value text-secondary">{{ active_investments }}</div>
+        <div class="stat-desc">Running plans</div>
+    </div>
+
+    <div class="stat bg-base-100 shadow rounded-lg">
+        <div class="stat-figure text-success">
+            <i class="fas fa-arrow-down text-3xl"></i>
+        </div>
+        <div class="stat-title">Deposits Today</div>
+        <div class="stat-value text-success">{{ deposits_today }}</div>
+        <div class="stat-desc">All statuses</div>
+    </div>
+
+    <div class="stat bg-base-100 shadow rounded-lg">
+        <div class="stat-figure text-warning">
+            <i class="fas fa-arrow-up text-3xl"></i>
+        </div>
+        <div class="stat-title">Withdrawals Today</div>
+        <div class="stat-value text-warning">{{ withdrawals_today }}</div>
+        <div class="stat-desc">All statuses</div>
+    </div>
+</div>
+
+<!-- Recent Activity Requiring Action -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Pending Deposits -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title flex justify-between items-center">
+                <span>Recent Pending Deposits</span>
+                <a href="{% url 'admin_deposits' %}" class="btn btn-xs btn-primary">View All</a>
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Crypto</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for deposit in recent_deposits %}
+                        <tr>
+                            <td>{{ deposit.user.username }}</td>
+                            <td>{{ deposit.cryptocurrency.symbol }}</td>
+                            <td>${{ deposit.amount_in_usd }}</td>
+                            <td>
+                                <form method="post" action="{% url 'admin_update_deposit' deposit.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="action" value="approve"
+                                        class="btn btn-xs btn-success">Approve</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-gray-500">No pending deposits</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Withdrawals -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title flex justify-between items-center">
+                <span>Recent Pending Withdrawals</span>
+                <a href="{% url 'admin_withdrawals' %}" class="btn btn-xs btn-primary">View All</a>
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Crypto</th>
+                            <th>Amount</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for withdrawal in recent_withdrawals %}
+                        <tr>
+                            <td>{{ withdrawal.user.username }}</td>
+                            <td>{{ withdrawal.cryptocurrency.symbol }}</td>
+                            <td>${{ withdrawal.amount_in_usd }}</td>
+                            <td>
+                                <form method="post" action="{% url 'admin_update_withdrawal' withdrawal.id %}"
+                                    class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="action" value="approve"
+                                        class="btn btn-xs btn-success">Approve</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-gray-500">No pending withdrawals</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Credit Card Requests -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title flex justify-between items-center">
+                <span>Pending Credit Card Requests</span>
+                <a href="{% url 'admin_credit_cards' %}" class="btn btn-xs btn-primary">View All</a>
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Card Type</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in recent_card_requests %}
+                        <tr>
+                            <td>{{ request.user.username }}</td>
+                            <td>{{ request.card_type.name }}</td>
+                            <td>{{ request.created_at|date:"m/d" }}</td>
+                            <td>
+                                <form method="post" action="{% url 'admin_update_credit_card' request.id %}"
+                                    class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="action" value="approve"
+                                        class="btn btn-xs btn-success">Approve</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-gray-500">No pending requests</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending KYC Verifications -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title flex justify-between items-center">
+                <span>Pending KYC Verifications</span>
+                <a href="{% url 'admin_kyc' %}" class="btn btn-xs btn-primary">View All</a>
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Document Type</th>
+                            <th>Submitted</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for kyc in recent_kyc %}
+                        <tr>
+                            <td>{{ kyc.user.username }}</td>
+                            <td>{{ kyc.get_document_type_display }}</td>
+                            <td>{{ kyc.submitted_at|date:"m/d" }}</td>
+                            <td>
+                                <a href="{% url 'admin_kyc' %}" class="btn btn-xs btn-info">Review</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-gray-500">No pending KYC</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -449,23 +449,154 @@ class MedbedRequestForm(forms.ModelForm):
             }),
         }
 
+
+class AssetRecoveryRequestForm(forms.ModelForm):
+    """Form for asset recovery requests"""
+    class Meta:
+        from .models import AssetRecoveryForm as AssetRecoveryModel
+        model = AssetRecoveryModel
+        fields = ['full_name', 'email', 'phone_number', 'wallet_address', 'asset_details', 'additional_info']
+        widgets = {
+            'full_name': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': 'Your Full Name'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': 'your.email@example.com'
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': '+1234567890'
+            }),
+            'wallet_address': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full font-mono',
+                'placeholder': 'Your wallet address'
+            }),
+            'asset_details': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'placeholder': 'Describe the assets you want to recover (type, amount, circumstances)',
+                'rows': 4
+            }),
+            'additional_info': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'placeholder': 'Any additional information that might help (optional)',
+                'rows': 3
+            }),
+        }
+
+
+class KYCSubmissionForm(forms.ModelForm):
+    """Form for KYC document submission"""
+    class Meta:
+        from .models import KYCVerification
+        model = KYCVerification
+        fields = ['document_type', 'document_image']
+        widgets = {
+            'document_type': forms.Select(attrs={
+                'class': 'select select-bordered w-full'
+            }),
+            'document_image': forms.FileInput(attrs={
+                'class': 'file-input file-input-bordered w-full',
+                'accept': 'image/*'
+            })
+        }
+
+
+class CreateInvestmentForm(forms.Form):
+    """Form for creating a new investment"""
+    cryptocurrency = forms.ModelChoiceField(
+        queryset=None,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'select select-bordered w-full'
+        }),
+        empty_label="Select Payment Wallet"
+    )
+    amount = forms.DecimalField(
+        max_digits=20,
+        decimal_places=2,
+        required=True,
+        label="Amount (USD)",
+        widget=forms.NumberInput(attrs={
+            'class': 'input input-bordered w-full',
+            'placeholder': 'Enter amount in USD',
+            'step': '0.01'
+        })
+    )
+
+    def __init__(self, user, plan, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+        self.plan = plan
+        
+        # Only show cryptos where user has balance
+        from .models import UserCryptoHolding, Crytocurrency
+        user_holdings = UserCryptoHolding.objects.filter(
+            user=user, 
+            amount_in_usd__gt=0
+        ).values_list('cryptocurrency', flat=True)
+        
+        self.fields['cryptocurrency'].queryset = Crytocurrency.objects.filter(id__in=user_holdings)
+        
+        # Set min/max help text
+        self.fields['amount'].help_text = f"Min: ${plan.min_amount} - Max: ${plan.max_amount}"
+        self.fields['amount'].widget.attrs['min'] = plan.min_amount
+        self.fields['amount'].widget.attrs['max'] = plan.max_amount
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        if amount:
+            if amount < self.plan.min_amount:
+                raise ValidationError(f"Minimum investment amount is ${self.plan.min_amount}")
+            if amount > self.plan.max_amount:
+                raise ValidationError(f"Maximum investment amount is ${self.plan.max_amount}")
+        return amount
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cryptocurrency = cleaned_data.get('cryptocurrency')
+        amount = cleaned_data.get('amount')
+
+        if cryptocurrency and amount:
+            from .models import UserCryptoHolding
+            try:
+                holding = UserCryptoHolding.objects.get(
+                    user=self.user,
+                    cryptocurrency=cryptocurrency
+                )
+                if holding.amount_in_usd < amount:
+                    raise ValidationError(
+                        f"Insufficient balance in {cryptocurrency.symbol}. You have ${holding.amount_in_usd}."
+                    )
+            except UserCryptoHolding.DoesNotExist:
+                raise ValidationError(f"You do not have any balance in {cryptocurrency.symbol}.")
+        
+        return cleaned_data
+
+
+
 class CreditCardRequestForm(forms.ModelForm):
     """Form for QFS Credit Card requests"""
     class Meta:
         from .models import CreditCardRequest
         model = CreditCardRequest
-        fields = ['card_type', 'shipping_address', 'phone_number']
+        fields = ['card_type', 'full_name', 'phone_number', 'address']
         widgets = {
             'card_type': forms.Select(attrs={
                 'class': 'select select-bordered w-full'
             }),
-            'shipping_address': forms.Textarea(attrs={
-                'class': 'textarea textarea-bordered w-full',
-                'placeholder': 'Enter your full shipping address...',
-                'rows': 3
+            'full_name': forms.TextInput(attrs={
+                'class': 'input input-bordered w-full',
+                'placeholder': 'Full Name'
             }),
             'phone_number': forms.TextInput(attrs={
                 'class': 'input input-bordered w-full',
-                'placeholder': '+1234567890'
+                'placeholder': 'Phone Number'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'rows': 3,
+                'placeholder': 'Shipping Address'
             }),
         }
