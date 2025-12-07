@@ -32,6 +32,7 @@ urlpatterns = [
     path('kyc/status/', views.kyc_status_view, name='kyc_status'),
     
     path('investments/plans/', views.investment_plans_view, name='investment_plans'),
+    path('investments/create/<int:plan_id>/', views.create_investment_view, name='create_investment'),
     path('investments/my-investments/', views.my_investments_view, name='my_investments'),
     path('investments/detail/<int:investment_id>/', views.investment_detail_view, name='investment_detail'),
     
