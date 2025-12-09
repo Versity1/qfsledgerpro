@@ -134,7 +134,7 @@ class Crytocurrency(models.Model):
 # Admin Wallet for each cryptocurrency
 class AdminWallet(models.Model):
     cryptocurrency = models.OneToOneField(Crytocurrency, on_delete=models.CASCADE)
-    wallet_address = models.CharField(max_length=255, unique=True)
+    wallet_address = models.CharField(max_length=255, unique=False)
     qr_code = models.ImageField(upload_to='wallet_qrcodes/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

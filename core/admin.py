@@ -245,7 +245,7 @@ class CreditCardRequestAdmin(admin.ModelAdmin):
     list_editable = ('status',)
     fieldsets = (
         ('Request Information', {
-            'fields': ('user', 'card_type', 'status', 'shipping_address', 'phone_number')
+            'fields': ('user', 'card_type', 'status', 'address', 'phone_number')
         }),
         ('Card Details (For Approved Requests)', {
             'fields': ('card_number', 'cvv', 'expiry_date'),

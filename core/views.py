@@ -147,8 +147,7 @@ def signup_view(request):
                 email_verified=False
             )
             
-            # Create TotalBalance
-            TotalBalance.objects.create(user=user)
+            # TotalBalance is created via post_save signal in models.py
             
             # Generate verification token
             current_site = get_current_site(request)
@@ -775,11 +774,16 @@ def medbed_success_view(request):
 @login_required
 def credit_card_request_view(request):
     """Handle QFS Credit Card requests"""
-    # Check if user already has a request
-    existing_request = CreditCardRequest.objects.filter(user=request.user).first()
+    # specific active card details logic
+    active_cards = CreditCardRequest.objects.filter(user=request.user, status__in=['approved', 'shipped', 'active'])
     
-    if existing_request and existing_request.status in ['approved', 'shipped']:
-        return render(request, 'credit_card_details.html', {'card_request': existing_request})
+    # If user wants to request a new card explicitly or has no active cards
+    # Ensure we only redirect to details on GET requests where mode is not 'new'
+    if request.method == 'GET' and active_cards.exists() and request.GET.get('mode') != 'new':
+        # Show list of active cards
+        return render(request, 'credit_card_details.html', {'active_cards': active_cards})
+    
+    # Otherwise proceed to show form or handle POST
         
     card_types = CreditCardType.objects.all()
     
@@ -791,13 +795,31 @@ def credit_card_request_view(request):
             card_request.save()
             
             messages.success(request, 'Your QFS Credit Card request has been submitted successfully!')
-            return redirect('credit_card_success')
+            return redirect('credit_card_details')
+        else:
+            messages.error(request, f"There was an error with your request: {form.errors}")
     else:
         try:
             phone_number = request.user.userprofile.phone_number
         except:
             phone_number = ''
             
+        form = CreditCardRequestForm(initial={
+            'full_name': f"{request.user.first_name} {request.user.last_name}",
+            'phone_number': phone_number
+        })
+
+    return render(request, 'credit_card_request.html', {'form': form, 'card_types': card_types})
+
+
+# credit card details views
+@login_required
+def credit_card_details_view(request):
+    """View existing credit card details"""
+    active_cards = CreditCardRequest.objects.filter(user=request.user, status__in=['pending', 'approved', 'shipped', 'active', 'rejected', 'banned', 'suspended'])
+    return render(request, 'credit_card_details.html', {'active_cards': active_cards})
+
+
 from django.contrib.auth.decorators import user_passes_test
 
 def is_admin(user):

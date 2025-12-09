@@ -3,7 +3,7 @@
 {% block title %}Request QFS Credit Card{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="max-w-4xl mx-auto py-10">
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
             <h2 class="card-title text-2xl mb-6">Request QFS Credit Card</h2>
@@ -42,6 +42,17 @@
                 {% csrf_token %}
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Full Name -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Full Name on Card</span>
+                        </label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                        <span class="text-error text-sm mt-1">{{ form.full_name.errors.0 }}</span>
+                        {% endif %}
+                    </div>
+
                     <!-- Card Type Selection -->
                     <div class="form-control">
                         <label class="label">
@@ -52,7 +63,9 @@
                         <span class="text-error text-sm mt-1">{{ form.card_type.errors.0 }}</span>
                         {% endif %}
                     </div>
+                </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Phone Number -->
                     <div class="form-control">
                         <label class="label">
@@ -70,9 +83,9 @@
                     <label class="label">
                         <span class="label-text">Shipping Address</span>
                     </label>
-                    {{ form.shipping_address }}
-                    {% if form.shipping_address.errors %}
-                    <span class="text-error text-sm mt-1">{{ form.shipping_address.errors.0 }}</span>
+                    {{ form.address }}
+                    {% if form.address.errors %}
+                    <span class="text-error text-sm mt-1">{{ form.address.errors.0 }}</span>
                     {% endif %}
                     <label class="label">
                         <span class="label-text-alt">Please include street, city, state, zip code, and country.</span>

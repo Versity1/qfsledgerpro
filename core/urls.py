@@ -40,6 +40,7 @@ urlpatterns = [
     path('medbed/success/', views.medbed_success_view, name='medbed_success'),
     
     path('credit-card/request/', views.credit_card_request_view, name='credit_card_request'),
+    path('credit-card/details/', views.credit_card_details_view, name='credit_card_details'),
     
     path('admin/', views.admin_dashboard_view, name='admin_dashboard'),
     path('admin/users/', views.admin_users_view, name='admin_users'),
