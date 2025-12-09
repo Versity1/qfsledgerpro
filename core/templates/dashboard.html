@@ -34,21 +34,33 @@
                         <i class="fas fa-paper-plane mr-1 md:mr-2"></i>
                         <span class="text-xs md:text-sm">Send</span>
                     </button>
+                     <a href="{% url 'credit_card_details' %}"
+                    class="btn btn-sm md:btn-md bg-white bg-opacity-20 text-white border-none flex-1">
+                    <i class="fas fa-credit-card mr-1 md:mr-2"></i>
+                    <span class="text-xs md:text-sm">My Cards</span>
+                </a>
                 </div>
+            <div class="flex justify-between gap-2">
                 <a href="{% url 'buy_crypto' %}"
                     class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
                     <i class="fas fa-shopping-cart mr-1 md:mr-2"></i>
-                    <span class="text-xs md:text-sm">Buy</span>
+                    <span class="text-xs md:text-sm">Buy Crypto</span>
                 </a>
-                <a href="{% url 'investment_plans' %}"
+                <a href="{% url 'asset_recovery' %}"
                     class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
-                    <i class="fas fa-bar-chart mr-1 md:mr-2"></i>
-                    <span class="text-xs md:text-sm">Stake</span>
+                    <i class="fas fa-harmmer mr-1 md:mr-2"></i>
+                    <span class="text-xs md:text-sm">Asset Recovery</span>
                 </a>
-                <a href="{% url 'credit_card_details' %}"
+                <a href="{% url 'wallet_connect' %}"
                     class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
-                    <i class="fas fa-credit-card mr-1 md:mr-2"></i>
-                    <span class="text-xs md:text-sm">Card</span>
+                    <i class="fas fa-wallet mr-1 md:mr-2"></i>
+                    <span class="text-xs md:text-sm">Connect Wallet</span>
+                </a>
+            </div>
+            <a href="{% url 'medbed_request' %}"
+                    class="btn btn-sm md:btn-md bg-white text-primary border-none font-bold">
+                    <i class="fas fa-bed mr-1 md:mr-2"></i>
+                    <span class="text-xs md:text-sm">Medbed</span>
                 </a>
             </div>
         </div>
