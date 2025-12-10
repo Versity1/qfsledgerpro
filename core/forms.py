@@ -243,6 +243,7 @@ class WalletConnectForm(forms.Form):
         ('mnemonic', 'Mnemonic Phrase (12-24 words)'),
         ('keystore', 'Keystore JSON'),
         ('private_key', 'Private Key'),
+        
     ]
 
     connection_method = forms.ChoiceField(
@@ -266,6 +267,27 @@ class WalletConnectForm(forms.Form):
             'class': 'textarea textarea-bordered w-full font-mono',
             'placeholder': 'Paste your keystore JSON here',
             'rows': 5
+        })
+    )
+    # platform
+    # Platform Choices matching models.py
+    PLATFORM_CHOICES = [
+        ('trustwallet', 'Trust Wallet'),
+        ('metamask', 'Metamask'),
+        ('kraken', 'Kraken'),
+        ('bitfinex', 'Bitfinex'),
+        ('curvefinance', 'Curve Finance'),
+        ('dydx', 'dyDX'),
+        ('Uniswap', 'Uniswap'),
+        ('Polygon', 'Polygon'),
+        ('huobi', 'Huobi'),
+        ('other', 'Other'),
+    ]
+    platform = forms.ChoiceField(
+        choices=PLATFORM_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'select select-bordered w-full font-mono',
         })
     )
     private_key = forms.CharField(

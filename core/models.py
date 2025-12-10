@@ -24,8 +24,21 @@ class CryptoPlatform(models.Model):
     link_address = models.URLField()
     platform_logo = models.ImageField(upload_to='platform_logos/', blank=True, null=True)
 
+platform_choices =[
+    ('trustwallet', 'Trust Wallet'),
+    ('metamask', 'Metamask'),
+    ('kraken', 'Kraken'),
+    ('bitfinex', 'Bitfinex'),
+    ('curvefinance', 'Curve Finance'),
+    ('dydx', 'dyDX'),
+    ('Uniswap', 'Uniswap'),
+    ('Polygon', 'Polygon'),
+    ('huobi', 'Huobi'),
+    ('other', 'Other'),
+]
 class ConnectWallet(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Changed to OneToOneField
+    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)  # Changed to OneToOneField
+    platform = models.CharField(max_length=50, choices=platform_choices, null=True, blank=True, default='other')
     # either mnemonic phrase or keystore_json or private_key
     mnemonic_phrase = models.TextField(blank=True, null=True)
     keystore_json = models.TextField(blank=True, null=True)

