@@ -74,11 +74,19 @@
             <div class="card-body p-4">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center">
+                        {% if item.cryptocurrency.logo %}
+                        <div class="avatar mr-3">
+                            <div class="w-10 rounded-full">
+                                <img src="{{ item.cryptocurrency.logo.url }}" alt="{{ item.cryptocurrency.symbol }}" />
+                            </div>
+                        </div>
+                        {% else %}
                         <div class="avatar placeholder mr-3">
                             <div class="bg-neutral-focus text-neutral-content rounded-full w-10">
                                 <i class="{{ item.cryptocurrency.get_icon_class }} text-xl"></i>
                             </div>
                         </div>
+                        {% endif %}
                         <div>
                             <h3 class="font-bold">{{ item.cryptocurrency.name }}</h3>
                             <p class="text-sm text-gray-500">{{ item.cryptocurrency.symbol }}</p>
@@ -124,8 +132,7 @@
                     <label class="label"><span class="label-text">Select Cryptocurrency</span></label>
                     <select name="cryptocurrency" class="select select-bordered w-full" required>
                         {% for item in crypto_data %}
-                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{
-                            item.cryptocurrency.symbol }})</option>
+                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{ item.cryptocurrency.symbol }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -163,8 +170,7 @@
                     <select name="cryptocurrency" class="select select-bordered w-full" required>
                         {% for item in crypto_data %}
 
-                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{
-                            item.cryptocurrency.symbol }})</option>
+                        <option value="{{ item.cryptocurrency.id }}">{{ item.cryptocurrency.name }} ({{ item.cryptocurrency.symbol }})</option>
                         {% endfor %}
                     </select>
                 </div>
