@@ -1,14 +1,16 @@
 {% load static %}
+{% load pwa %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QFS Ledger Pro - Dashboard</title>
+    <title>Quantum Ledger Pro - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    {% progressive_web_app_meta %}
     <!-- favicon -->
     <link rel="icon" type="image/x-icon" href="{% static 'images/logo-dark.png' %}">
     <!-- Apple Touch Icon -->
@@ -128,7 +130,7 @@
                 <!-- LEFT SIDE: Logo -->
                 <div class="flex-1">
                     <a class="flex items-center">
-                        <img src="{% static 'images/logo_new.png' %}" alt="QFS Ledger Pro" class="h-8 md:h-10">
+                        <img src="{% static 'images/logo_new.png' %}" alt="Quantum Ledger Pro" class="h-8 md:h-10">
                     </a>
                 </div>
 
@@ -184,7 +186,7 @@
             <ul class="menu p-4 w-80 h-full bg-base-200 text-base-content">
                 <li class="mb-8">
                     <a class="text-xl font-bold">
-                        <img src="{% static 'images/logo_new.png' %}" alt="" width="180px">
+                        <img src="{% static 'images/dark-logo.png' %}" alt="" width="180px">
                     </a>
                 </li>
 

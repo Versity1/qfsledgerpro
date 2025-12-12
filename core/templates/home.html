@@ -1,4 +1,5 @@
 {% load static %}
+{% load pwa %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,6 +9,7 @@
     <title>Quantum ledger Pro - Blockchain Asset Management Platform</title>
     <meta name="description"
         content="Enterprise-grade blockchain platform for secure digital asset management, investment banking, and asset recovery services.">
+    {% progressive_web_app_meta %}
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap"
@@ -26,9 +28,9 @@
             --accent: #d4af37;
             --gold: #d4af37;
             --cyan: #00d4ff;
-            --dark-bg: #0a1628;
-            --dark-card: #1a2942;
-            --background: #0a1628;
+            --dark-bg: #13253f;
+            --dark-card: #27395a;
+            --background: #182e4d;
         }
 
         /* Custom Tailwind Configuration */
@@ -81,9 +83,9 @@
         /* Hero video overlay */
         .hero-video-overlay {
             background: linear-gradient(135deg,
-                    rgba(10, 22, 40, 0.92) 0%,
+                    rgba(45, 68, 104, 0.92) 0%,
                     rgba(0, 212, 255, 0.15) 50%,
-                    rgba(212, 175, 55, 0.15) 100%);
+                    rgba(197, 164, 57, 0.15) 100%);
         }
 
         /* Animations */
@@ -272,7 +274,7 @@
                     <!-- Logo -->
                     <div class="flex items-center gap-3">
                         <div class="h-10 text-primary">
-                            <img src="{% static 'images/logo_new.png' %}" alt="QFS Ledger Pro"
+                            <img src="{% static 'images/dark-logo.png' %}" alt="Quantum Ledger Pro"
                                 class="h-full object-contain">
                         </div>
                     </div>
@@ -336,7 +338,7 @@
                     style="background: var(--dark-card);">
                     <div class="flex items-center gap-2">
                         <div class="h-6 text-primary">
-                            <img src="{% static 'images/logo_new.png' %}" alt="QFS Ledger Pro"
+                            <img src="{% static 'images/dark-logo.png' %}" alt="Quantum Ledger Pro"
                                 class="h-full object-contain">
                         </div>
                     </div>
@@ -796,7 +798,7 @@
 
                         <div class="screenshot-hover rounded-xl overflow-hidden shadow-lg border"
                             style="border-color: rgba(0, 212, 255, 0.1);">
-                            <img src="{% static 'images/platform_showcase_1.jpg' %}" alt="Transaction History"
+                            <img src="{% static 'images/ledger-main.png' %}" alt="Transaction History"
                                 class="w-full h-64 object-cover opacity-80 hover:opacity-100 transition-opacity">
                             <div class="screenshot-label">
                                 <span class="px-4 py-2 rounded-full font-bold text-sm text-gray-900 shadow-xl"
@@ -808,7 +810,7 @@
 
                         <div class="screenshot-hover rounded-xl overflow-hidden shadow-lg border"
                             style="border-color: rgba(0, 212, 255, 0.1);">
-                            <img src="{% static 'images/platform_showcase_2.jpg' %}" alt="Portfolio Management"
+                            <img src="{% static 'images/ledge3.jpg' %}" alt="Portfolio Management"
                                 class="w-full h-64 object-cover opacity-80 hover:opacity-100 transition-opacity">
                             <div class="screenshot-label">
                                 <span class="px-4 py-2 rounded-full font-bold text-sm text-gray-900 shadow-xl"
@@ -1078,13 +1080,6 @@
                     <div class="grid md:grid-cols-4 gap-12 mb-12">
                         <div class="md:col-span-1">
                             <div class="flex items-center gap-2 mb-4">
-                                <div class="size-8 text-cyan-400">
-                                    <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                        <path
-                                            d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z"
-                                            fill="currentColor"></path>
-                                    </svg>
-                                </div>
                                 <span class="text-lg font-bold text-white">Quantum Ledger Pro</span>
                             </div>
                             <p class="text-sm text-gray-400 leading-relaxed">
