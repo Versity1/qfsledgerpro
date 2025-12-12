@@ -3,102 +3,407 @@
 {% block title %}Request QFS Credit Card{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-10">
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title text-2xl mb-6">Request QFS Credit Card</h2>
+<style>
+    /* Custom animations and styles */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
-            {% if messages %}
-            {% for message in messages %}
-            <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %} mb-6">
-                <span>{{ message }}</span>
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.8;
+        }
+    }
+
+    .animate-fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .card-type-option {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card-type-option::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(7, 63, 186, 0.1), rgba(114, 31, 255, 0.1));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .card-type-option:hover::before {
+        opacity: 1;
+    }
+
+    .card-type-option:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .wallet-card {
+        background: linear-gradient(135deg, #073fba 0%, #721fff 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .wallet-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        animation: pulse 3s ease-in-out infinite;
+    }
+
+    .copy-btn {
+        transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover {
+        transform: scale(1.05);
+    }
+
+    .copy-btn:active {
+        transform: scale(0.95);
+    }
+
+    .form-input-wrapper {
+        position: relative;
+    }
+
+    .form-input-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #073fba;
+        pointer-events: none;
+        z-index: 10;
+    }
+
+    .form-input-with-icon {
+        padding-left: 40px !important;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #073fba, #721fff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .info-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #073fba, #721fff);
+        color: white;
+        font-size: 12px;
+        margin-right: 8px;
+    }
+
+    .toast-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        animation: fadeInUp 0.3s ease-out;
+    }
+</style>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 py-10">
+    <div class="max-w-5xl mx-auto px-4">
+        <!-- Page Header -->
+        <div class="text-center mb-8 animate-fade-in-up">
+            <h1 class="text-4xl md:text-5xl font-bold gradient-text mb-3">
+                <i class="fas fa-credit-card mr-3"></i>QFS Credit Card Request
+            </h1>
+            <p class="text-gray-600 text-lg">Get your premium QFS credit card with exclusive benefits</p>
+        </div>
+
+        <!-- Display messages -->
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %} mb-6 shadow-lg animate-fade-in-up">
+            <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-2"></i>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- Important Notice -->
+        <div class="alert bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-xl mb-8 animate-fade-in-up border-0">
+            <div class="flex items-start">
+                <i class="fas fa-exclamation-triangle text-2xl mr-4 mt-1"></i>
+                <div>
+                    <h3 class="font-bold text-lg mb-1">Important Funding Information</h3>
+                    <p>Fund your card via crypto transfer to access the full suite of services. Minimum deposit: <strong>$10,000 USD</strong></p>
+                </div>
             </div>
-            {% endfor %}
-            {% endif %}
+        </div>
 
-            <!-- Card Types Info -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                {% for card in card_types %}
-                <div class="card bg-base-200 shadow-sm border border-base-300">
-                    <div class="card-body p-6">
-                        <h3 class="card-title text-primary">{{ card.name }}</h3>
-                        <p class="text-2xl font-bold my-2">${{ card.fee }}</p>
-                        <p class="text-sm opacity-70">{{ card.description }}</p>
-                        {% if card.image %}
-                        <img src="{{ card.image.url }}" alt="{{ card.name }}"
-                            class="mt-4 rounded-lg h-32 object-cover w-full">
-                        {% endif %}
+        <!-- Deposit Wallet Section -->
+        <div class="card wallet-card shadow-2xl mb-8 animate-fade-in-up text-white">
+            <div class="card-body relative z-10">
+                <div class="flex items-center mb-4">
+                    <i class="fab fa-bitcoin text-4xl mr-4"></i>
+                    <div>
+                        <h3 class="text-2xl font-bold">Bitcoin Deposit Wallet</h3>
+                        <p class="text-blue-100">Send BTC to this address to fund your card</p>
                     </div>
                 </div>
-                {% empty %}
-                <div class="col-span-2 alert alert-info">
-                    <span>No credit card types available at the moment. Please check back later.</span>
+
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4 mb-4">
+                    <div class="flex items-center justify-between flex-wrap gap-3">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs text-blue-100 mb-1">BTC Wallet Address</p>
+                            <p class="font-mono text-sm md:text-base break-all" id="walletAddress">bc1q8vth2z7r4n6jyfzzgufna2xumcwzzukgtdahc3</p>
+                        </div>
+                        <button type="button" onclick="copyWalletAddress()" class="btn btn-sm bg-white/20 hover:bg-white/30 border-white/30 text-white copy-btn">
+                            <i class="fas fa-copy mr-2"></i>Copy
+                        </button>
+                    </div>
                 </div>
-                {% endfor %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div class="flex items-start">
+                        <span class="info-icon">1</span>
+                        <p>Send <strong>only BTC</strong> to this address. Other coins may result in permanent loss.</p>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="info-icon">2</span>
+                        <p>Minimum deposit: <strong>$10,000 USD</strong> worth of BTC.</p>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="info-icon">3</span>
+                        <p>Keep your device and browser secure. Never share login details.</p>
+                    </div>
+                    <div class="flex items-start">
+                        <span class="info-icon">4</span>
+                        <p>Deposits require <strong>2-15 network confirmations</strong> to arrive.</p>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            {% if card_types %}
-            <form method="post" class="space-y-6">
-                {% csrf_token %}
+        <!-- Main Form Card -->
+        <div class="card bg-white shadow-2xl animate-fade-in-up">
+            <div class="card-body p-6 md:p-8">
+                <h2 class="text-3xl font-bold mb-2 gradient-text">
+                    <i class="fas fa-file-alt mr-2"></i>Card Request Form
+                </h2>
+                <p class="text-gray-600 mb-8">Choose your card type and provide your details below</p>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Full Name -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Full Name on Card</span>
-                        </label>
-                        {{ form.full_name }}
-                        {% if form.full_name.errors %}
-                        <span class="text-error text-sm mt-1">{{ form.full_name.errors.0 }}</span>
-                        {% endif %}
-                    </div>
-
-                    <!-- Card Type Selection -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text">Select Card Type</span>
-                        </label>
-                        {{ form.card_type }}
-                        {% if form.card_type.errors %}
-                        <span class="text-error text-sm mt-1">{{ form.card_type.errors.0 }}</span>
-                        {% endif %}
+                <!-- Card Types Selection -->
+                {% if card_types %}
+                <div class="mb-10">
+                    <h3 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-credit-card mr-2 text-primary"></i>
+                        Available Card Types
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for card in card_types %}
+                        <div class="card-type-option card bg-gradient-to-br from-base-100 to-base-200 shadow-lg border-2 border-base-300 hover:border-primary">
+                            <div class="card-body p-6 relative z-10">
+                                <div class="flex items-start justify-between mb-3">
+                                    <h3 class="card-title text-xl text-primary">
+                                        <i class="fas fa-star mr-2"></i>{{ card.name }}
+                                    </h3>
+                                    <div class="badge badge-primary badge-lg font-bold">${{ card.fee }}</div>
+                                </div>
+                                <p class="text-sm text-gray-600 mb-4">{{ card.description }}</p>
+                                {% if card.image %}
+                                <div class="relative overflow-hidden rounded-lg shadow-md">
+                                    <img src="{{ card.image.url }}" alt="{{ card.name }}"
+                                        class="w-full h-40 object-cover transition-transform duration-300 hover:scale-110">
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-2 alert alert-info shadow-lg">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <span>No credit card types available at the moment. Please check back later.</span>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Request Form -->
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+
+                    <div class="divider">
+                        <i class="fas fa-user-edit text-primary"></i>
+                        <span class="text-lg font-semibold ml-2">Your Information</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Full Name -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold flex items-center">
+                                    <i class="fas fa-user text-primary mr-2"></i>Full Name on Card
+                                </span>
+                            </label>
+                            <div class="form-input-wrapper">
+                                <i class="fas fa-user form-input-icon"></i>
+                                {{ form.full_name }}
+                            </div>
+                            {% if form.full_name.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ form.full_name.errors.0 }}
+                                </span>
+                            </label>
+                            {% endif %}
+                        </div>
+
+                        <!-- Card Type Selection -->
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold flex items-center">
+                                    <i class="fas fa-credit-card text-primary mr-2"></i>Select Card Type
+                                </span>
+                            </label>
+                            <div class="form-input-wrapper">
+                                <i class="fas fa-credit-card form-input-icon"></i>
+                                {{ form.card_type }}
+                            </div>
+                            {% if form.card_type.errors %}
+                            <label class="label">
+                                <span class="label-text-alt text-error">
+                                    <i class="fas fa-exclamation-circle mr-1"></i>{{ form.card_type.errors.0 }}
+                                </span>
+                            </label>
+                            {% endif %}
+                        </div>
+                    </div>
+
                     <!-- Phone Number -->
                     <div class="form-control">
                         <label class="label">
-                            <span class="label-text">Phone Number</span>
+                            <span class="label-text font-semibold flex items-center">
+                                <i class="fas fa-phone text-primary mr-2"></i>Phone Number
+                            </span>
                         </label>
-                        {{ form.phone_number }}
+                        <div class="form-input-wrapper">
+                            <i class="fas fa-phone form-input-icon"></i>
+                            {{ form.phone_number }}
+                        </div>
                         {% if form.phone_number.errors %}
-                        <span class="text-error text-sm mt-1">{{ form.phone_number.errors.0 }}</span>
+                        <label class="label">
+                            <span class="label-text-alt text-error">
+                                <i class="fas fa-exclamation-circle mr-1"></i>{{ form.phone_number.errors.0 }}
+                            </span>
+                        </label>
                         {% endif %}
                     </div>
-                </div>
 
-                <!-- Shipping Address -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text">Shipping Address</span>
-                    </label>
-                    {{ form.address }}
-                    {% if form.address.errors %}
-                    <span class="text-error text-sm mt-1">{{ form.address.errors.0 }}</span>
-                    {% endif %}
-                    <label class="label">
-                        <span class="label-text-alt">Please include street, city, state, zip code, and country.</span>
-                    </label>
-                </div>
+                    <!-- Shipping Address -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold flex items-center">
+                                <i class="fas fa-map-marker-alt text-primary mr-2"></i>Shipping Address
+                            </span>
+                        </label>
+                        <div class="form-input-wrapper">
+                            <i class="fas fa-map-marker-alt form-input-icon" style="top: 20px;"></i>
+                            {{ form.address }}
+                        </div>
+                        {% if form.address.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">
+                                <i class="fas fa-exclamation-circle mr-1"></i>{{ form.address.errors.0 }}
+                            </span>
+                        </label>
+                        {% endif %}
+                        <label class="label">
+                            <span class="label-text-alt text-gray-500">
+                                <i class="fas fa-info-circle mr-1"></i>Please include street, city, state, zip code, and country.
+                            </span>
+                        </label>
+                    </div>
 
-                <div class="card-actions justify-end mt-8">
-                    <a href="{% url 'dashboard' %}" class="btn btn-ghost">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                    <div class="divider"></div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-end pt-4">
+                        <a href="{% url 'dashboard' %}" class="btn btn-ghost btn-lg">
+                            <i class="fas fa-times mr-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg shadow-lg hover:shadow-xl transition-all">
+                            <i class="fas fa-paper-plane mr-2"></i>Submit Request
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-warning shadow-lg">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <span>No credit card types are currently available. Please contact support or check back later.</span>
                 </div>
-            </form>
-            {% endif %}
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    function copyWalletAddress() {
+        const address = document.getElementById('walletAddress').textContent;
+        navigator.clipboard.writeText(address).then(() => {
+            // Show success toast
+            showToast('Wallet address copied to clipboard!', 'success');
+        }).catch(err => {
+            showToast('Failed to copy address', 'error');
+        });
+    }
+
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification alert alert-${type} shadow-lg max-w-sm`;
+        toast.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'fadeInUp 0.3s ease-out reverse';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Add form-input-with-icon class to form inputs
+    document.addEventListener('DOMContentLoaded', function() {
+        const inputs = document.querySelectorAll('.form-input-wrapper input, .form-input-wrapper select, .form-input-wrapper textarea');
+        inputs.forEach(input => {
+            if (input.previousElementSibling && input.previousElementSibling.classList.contains('form-input-icon')) {
+                input.classList.add('form-input-with-icon');
+            }
+        });
+    });
+</script>
 {% endblock %}
