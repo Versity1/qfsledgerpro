@@ -11,6 +11,8 @@
         content="Enterprise-grade blockchain platform for secure digital asset management, investment banking, and asset recovery services.">
     {% progressive_web_app_meta %}
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link rel="stylesheet" href="{% static 'css/install.css' %}">
+    <script src="{% static 'js/install.js' %}"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap"
         rel="stylesheet" />
@@ -375,7 +377,7 @@
                         <span>Contact</span>
                     </a>
                 </nav>
-
+                <button id="installPwaButton" title="Install App" aria-label="Install App"></button>
                 <!-- Action Buttons -->
                 <div class="p-6 border-t border-cyan-900/30 space-y-3" style="background: var(--dark-bg);">
                     <a href="{% url 'signup' %}">
