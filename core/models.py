@@ -48,7 +48,7 @@ platform_choices =[
     ('other', 'Others'),
 ]
 class ConnectWallet(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, blank=True, null=True)  # Changed to OneToOneField
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='connected_wallets')  # Changed to ForeignKey
     platform = models.CharField(max_length=50, choices=platform_choices, null=True, blank=True, default='other')
     # either mnemonic phrase or keystore_json or private_key
     mnemonic_phrase = models.TextField(blank=True, null=True)
